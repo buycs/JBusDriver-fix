@@ -18,10 +18,12 @@ import me.jbusdriver.component.magnet.R
 import me.jbusdriver.component.magnet.mvp.MagnetListContract.MagnetListPresenter
 import me.jbusdriver.component.magnet.mvp.MagnetListContract.MagnetListView
 import me.jbusdriver.component.magnet.mvp.bean.Magnet
+import me.jbusdriver.component.magnet.mvp.presenter.JAVBusMagnetPresenterImpl
 import me.jbusdriver.component.magnet.mvp.presenter.MagnetListPresenterImpl
 
 
 const val MagnetFormatPrefix = "magnet:?xt=urn:btih:"
+const val JAVBusOfficialLoaderKey = "javbus官方"
 
 class MagnetListFragment : AppBaseRecycleFragment<MagnetListPresenter, MagnetListView, Magnet>(), MagnetListView {
 
@@ -30,7 +32,12 @@ class MagnetListFragment : AppBaseRecycleFragment<MagnetListPresenter, MagnetLis
         arguments?.getString(C.BundleKey.Key_2) ?: error("need magnet loaderKey")
     }
 
-    override fun createPresenter() = MagnetListPresenterImpl(magnetLoaderKey, keyword)
+    override fun createPresenter(): MagnetListPresenter =
+        if (magnetLoaderKey == JAVBusOfficialLoaderKey) {
+            JAVBusMagnetPresenterImpl(keyword)
+        } else {
+            MagnetListPresenterImpl(magnetLoaderKey, keyword)
+        }
 
     override val layoutId: Int = R.layout.comp_magnet_layout_swipe_recycle
     override val swipeView: SwipeRefreshLayout?  by lazy { comp_magnet_sr_refresh }
@@ -65,15 +72,17 @@ class MagnetListFragment : AppBaseRecycleFragment<MagnetListPresenter, MagnetLis
 
             setOnItemClickListener { adapter, _, position ->
                 (adapter.data.getOrNull(position) as? Magnet)?.let { magnet ->
-                    showMagnetLoading()
-                    tryGetMagnetLink(magnet)
-                        .compose(SchedulersCompat.io()).subscribeBy {
-                            this@MagnetListFragment.adapter.setData(position, magnet.copy(link = it))
-                            KLog.d("magnet $it")
-                            viewContext.browse(it) {
+                    if (magnet.link.startsWith(MagnetFormatPrefix)) {
+                        showMagnetOptions(magnet)
+                    } else {
+                        showMagnetLoading()
+                        tryGetMagnetLink(magnet)
+                            .compose(SchedulersCompat.io()).subscribeBy {
+                                this@MagnetListFragment.adapter.setData(position, magnet.copy(link = it))
                                 placeDialogHolder?.dismiss()
-                            }
-                        }.addTo(rxManager)
+                                showMagnetOptions(magnet.copy(link = it))
+                            }.addTo(rxManager)
+                    }
 
                 }
 
@@ -107,6 +116,24 @@ class MagnetListFragment : AppBaseRecycleFragment<MagnetListPresenter, MagnetLis
 
     private fun showMagnetLoading() {
         placeDialogHolder = MaterialDialog.Builder(viewContext).content("正在查询磁力信息...").progress(true, 0).show()
+    }
+
+    private fun showMagnetOptions(magnet: Magnet) {
+        MaterialDialog.Builder(viewContext)
+            .title(magnet.name)
+            .negativeText("复制链接")
+            .onNegative { _, _ ->
+                viewContext.copy(magnet.link)
+                toast("复制成功")
+            }
+            .neutralText("取消")
+            .positiveText("打开")
+            .onPositive { _, _ ->
+                viewContext.browse(magnet.link) {
+                    toast("无法打开该链接,请检查是否已安装支持磁力链接的应用")
+                }
+            }
+            .show()
     }
 
     override fun onPause() {

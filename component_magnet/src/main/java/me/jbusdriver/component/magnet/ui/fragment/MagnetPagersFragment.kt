@@ -25,7 +25,7 @@ class MagnetPagersFragment : TabViewPagerFragment<MagnetPagerPresenter, MagnetPa
 
     override val mTitles: List<String> by lazy {
         val allKeys = MagnetPluginHelper.getLoaderKeys()
-        Configuration.getConfigKeys().filter { allKeys.contains(it) }.toMutableList().apply {
+        val configKeys = Configuration.getConfigKeys().filter { allKeys.contains(it) }.toMutableList().apply {
             if (this.isEmpty()) {
                 this.addAll(Configuration.getConfigKeys())
             }
@@ -33,13 +33,18 @@ class MagnetPagersFragment : TabViewPagerFragment<MagnetPagerPresenter, MagnetPa
                 Configuration.saveMagnetKeys(this)
             }
         }
-
+        mutableListOf<String>(JAVBusOfficialLoaderKey).apply {
+            addAll(configKeys)
+        }
 
     }
 
     override val mFragments: List<Fragment> by lazy {
         mTitles.map {
-            val mapKey = if ("default" == it) link else keyword
+            val mapKey = when (it) {
+                "default", JAVBusOfficialLoaderKey -> link
+                else -> keyword
+            }
             MagnetListFragment.newInstance(mapKey, it)
         }
     }

@@ -29,7 +29,9 @@ object NetClient {
     private val EXIST_MAGNET_INTERCEPTOR by lazy {
         Interceptor { chain ->
             var request = chain.request()
-            val builder = request.newBuilder().header("User-Agent", USER_AGENT)
+            val builder = request.newBuilder()
+                .header("User-Agent", USER_AGENT)
+                .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
             val sb = buildString {
                 append(if (!TextUtils.isEmpty(request.header("existmag"))){
                     "existmag=all"

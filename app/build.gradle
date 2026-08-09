@@ -20,13 +20,15 @@ android {
         }
         minSdkVersion 21
         targetSdkVersion versions.targetSdk
-        versionCode 1
-        versionName "1.0"
+        versionCode 622
+        versionName "1.3.6build622"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         flavorDimensions "github"
 
         // 开启multidex
         multiDexEnabled true
+        manifestPlaceholders = [UMENG_KEY: "58e8ecaa7666134a5a001740",
+                                CHANNEL  : "gayhub"]
     }
     //recommend
     dexOptions {
@@ -89,13 +91,7 @@ android {
 
 
     }
-    productFlavors {
-        gayhub {
-            dimension "github"
-            manifestPlaceholders = [UMENG_KEY: "58e8ecaa7666134a5a001740",
-                                    CHANNEL  : "gayhub"]
-        }
-    }
+
 }
 
 //使用git的Tag来自动定制Version

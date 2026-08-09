@@ -140,6 +140,7 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
         MenuOp.Ops.forEach {
             navigationView.menu.findItem(it.id).isVisible = it.isHow
         }
+        navigationView.menu.findItem(R.id.movie_forum).isVisible = true
         setNavSelected()
     }
 
@@ -170,6 +171,12 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
 
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.movie_forum) {
+            browse("https://www.javbus.com/forum/")
+            val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+            drawer.closeDrawer(GravityCompat.START)
+            return true
+        }
         // Handle navigation view item clicks here.
         switchFragment(item.itemId)
         //更新当前选择菜单

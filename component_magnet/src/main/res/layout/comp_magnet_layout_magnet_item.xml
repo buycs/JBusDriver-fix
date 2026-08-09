@@ -31,7 +31,7 @@
                 tools:text="titletitletitletitletitletitletitletitletitletitletitletitletitletitletitle" />
 
             <TextView
-                android:id="@+id/comp_magnet_tv_magnet_size"
+                android:id="@+id/comp_magnet_tv_magnet_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
@@ -41,20 +41,24 @@
                 android:gravity="center_vertical"
                 android:maxLines="1"
                 android:minHeight="@dimen/material_24dp"
-                android:textSize="12sp"
-                tools:text="abc123" />
+                android:textSize="@dimen/material_12sp"
+                tools:text="2015/01/01" />
 
             <TextView
-                android:id="@+id/comp_magnet_tv_magnet_date"
+                android:id="@+id/comp_magnet_tv_magnet_size"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/comp_magnet_tv_magnet_size"
+                android:layout_below="@+id/comp_magnet_tv_magnet_title"
+                android:layout_toEndOf="@+id/comp_magnet_tv_magnet_date"
+                android:layout_toRightOf="@+id/comp_magnet_tv_magnet_date"
+                android:layout_marginStart="@dimen/material_8dp"
+                android:layout_marginLeft="@dimen/material_8dp"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:maxLines="1"
                 android:minHeight="@dimen/material_24dp"
-                android:textSize="@dimen/material_12sp"
-                tools:text="2015/01/01" />
+                android:textSize="12sp"
+                tools:text="abc123" />
 
 
         </RelativeLayout>

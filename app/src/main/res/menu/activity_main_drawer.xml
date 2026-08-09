@@ -106,4 +106,15 @@
 
     </group>
 
+    <group
+        android:id="@+id/nav_forum"
+        android:checkableBehavior="single"
+        android:menuCategory="system">
+        <item
+            android:id="@+id/movie_forum"
+            android:icon="@drawable/ic_bubble_chart_black_24dp"
+            android:title="論壇"
+            android:visible="false" />
+    </group>
+
 </menu>

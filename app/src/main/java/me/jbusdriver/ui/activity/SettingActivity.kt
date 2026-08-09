@@ -113,7 +113,6 @@ class SettingActivity : BaseActivity() {
             MenuOpHead("个人").apply { MenuOp.mine.forEach { addSubItem(it) } },
             MenuOpHead("有碼").apply { MenuOp.nav_ma.forEach { addSubItem(it) } },
             MenuOpHead("無碼").apply { MenuOp.nav_uncensore.forEach { addSubItem(it) } },
-            MenuOpHead("欧美").apply { MenuOp.nav_xyz.forEach { addSubItem(it) } },
             MenuOpHead("其他").apply { MenuOp.nav_other.forEach { addSubItem(it) } }
         )
         val adapter = MenuOpAdapter(data)

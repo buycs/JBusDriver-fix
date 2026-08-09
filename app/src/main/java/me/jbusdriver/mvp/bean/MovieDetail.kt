@@ -14,6 +14,9 @@ data class MovieDetail(
     val title: String,
     val content: String,
     val cover: String, //封面
+    val gid: String = "",
+    val uc: String = "",
+    val img: String = "",
     val headers: List<Header>,
     /*
       val code: String,
@@ -25,9 +28,37 @@ data class MovieDetail(
     val genres: List<Genre>, //類別
     val actress: List<ActressInfo>, //出演
     val imageSamples: List<ImageSample>, //截圖
-    val relatedMovies: List<Movie> //推薦
+    val relatedMovies: List<Movie>, //推薦
+    val forumPosts: List<ForumPost> //論壇熱帖
     //  val magnets: MutableList<Magnet> = mutableListOf() //磁力链接
 )
+
+data class ForumPost(val name: String, val image: String, override val link: String) : ILink {
+    @Transient
+    override var categoryId: Int = LinkCategory.id ?: 10
+
+    val tid: String
+        get() = Regex("tid=(\\d+)").find(link)?.groupValues?.getOrNull(1).orEmpty()
+}
+
+data class ForumThreadPost(
+    val title: String,
+    val floors: List<ForumFloor>,
+    val hasNext: Boolean = false,
+    val nextUrl: String = ""
+)
+
+data class ForumFloor(
+    val floorNo: String,      //楼层号: 楼主/1#
+    val author: String,       //作者
+    val time: String,         //发表时间
+    val segments: List<ForumSegment> //有序内容段
+)
+
+sealed class ForumSegment {
+    data class Text(val content: String) : ForumSegment()
+    data class Image(val url: String) : ForumSegment()
+}
 
 interface IAttr : Serializable
 

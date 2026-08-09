@@ -54,6 +54,7 @@
             android:name="me.jbusdriver.ui.activity.SearchResultActivity"
             android:launchMode="singleTop" />
         <activity android:name="me.jbusdriver.ui.activity.SettingActivity" />
+        <activity android:name="me.jbusdriver.ui.activity.ForumThreadActivity" />
 
         <service
             android:name=".ui.task.LoadCollectService"

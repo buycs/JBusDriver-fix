@@ -51,6 +51,7 @@ class MovieDetailActivity :
     private val actressHolder by lazy { ActressListHolder(this) }
     private val genreHolder by lazy { GenresHolder(this) }
     private val relativeMovieHolder by lazy { RelativeMovieHolder(this) }
+    private val forumPostsHolder by lazy { ForumPostsHolder(this) }
 
     override val url by lazy { intent.getStringExtra(C.BundleKey.Key_1) }
 
@@ -162,6 +163,7 @@ class MovieDetailActivity :
         ll_movie_detail.addView(actressHolder.view)
         ll_movie_detail.addView(genreHolder.view)
         ll_movie_detail.addView(relativeMovieHolder.view)
+        ll_movie_detail.addView(forumPostsHolder.view)
 
 
     }
@@ -180,6 +182,7 @@ class MovieDetailActivity :
         actressHolder.release()
         genreHolder.release()
         relativeMovieHolder.release()
+        forumPostsHolder.release()
         ImmersionBar.with(this).destroy()
     }
 
@@ -250,6 +253,7 @@ class MovieDetailActivity :
             actressHolder.init(data.actress)
             genreHolder.init(data.genres)
             relativeMovieHolder.init(data.relatedMovies)
+            forumPostsHolder.init(data.forumPosts)
 
 
         }

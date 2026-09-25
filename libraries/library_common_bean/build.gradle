@@ -1,17 +1,28 @@
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    compileSdkVersion versions.compileSdk
+    namespace 'me.jbusdriver.common.bean'
+    compileSdk libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
-        minSdkVersion 18
-        targetSdkVersion versions.targetSdk
-        versionCode 1
-        versionName "1.0"
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        consumerProguardFiles 'proguard-rules.pro'
+    }
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
 
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    lint {
+        abortOnError false
     }
 
     buildTypes {
@@ -20,13 +31,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
     implementation project(':libraries:library_base')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}"
-
-    //compileOnly
-    compileOnly "com.wlqq.phantom:phantom-host-lib:${versions.phantom.allVersion}"
+    testImplementation libs.junit
 }

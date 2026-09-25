@@ -1,23 +1,32 @@
-apply from: rootProject.file('buildscripts/cc-settings-2-app.gradle')
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    compileSdkVersion versions.compileSdk
-    buildToolsVersion versions.buildTools
+    namespace 'me.jbusdriver.component.magnet'
+    compileSdk libs.versions.compileSdk.get().toInteger()
+    buildToolsVersion libs.versions.buildTools.get()
+
     defaultConfig {
-        if (project.ext.runAsApp) {
-            applicationId "me.jbusdriver.component.magnet"
-        }
-        minSdkVersion 18
-        targetSdkVersion versions.targetSdk
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        consumerProguardFiles 'proguard-rules.pro'
     }
+
     resourcePrefix "comp_magnet_"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    lint {
+        abortOnError false
+    }
 
     buildTypes {
         release {
@@ -25,13 +34,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api "org.jsoup:jsoup:${versions.jsoup}"
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    api libs.jsoup
+    implementation project(':libraries:library_base')
+    implementation project(':libraries:library_common_bean')
+    testImplementation libs.junit
 }

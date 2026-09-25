@@ -1,4 +1,30 @@
+pluginManagement {
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    // 版本与 SDK 配置的唯一来源：E:\media\gradle-versions（三项目共享基线）
+    versionCatalogs {
+        create("libs") { from(files("../gradle-versions/libs.versions.toml")) }
+    }
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/jitpack' }
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+rootProject.name = 'JBusDriver'
+
 include ':app'
-include ':component_interceptors',  ':component_magnet', ':component_plugin_manager'
-include ':libraries:library_base',':libraries:library_common_bean'
-include ':plugins:plugin_magnet'
+include ':component_interceptors', ':component_magnet', ':component_plugin_manager'
+include ':libraries:library_base', ':libraries:library_common_bean'

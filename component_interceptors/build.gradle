@@ -1,19 +1,28 @@
-ext.alwaysLib = true //虽然apply了cc-settings-2.gradle，但一直作为library编译，否则别的组件依赖此module时会报错
-apply from: rootProject.file('buildscripts/cc-settings-2.gradle')
-apply plugin: 'kotlin-android'
-
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    compileSdkVersion versions.compileSdk
+    namespace 'me.jbusdriver.component.interceptors'
+    compileSdk libs.versions.compileSdk.get().toInteger()
 
     defaultConfig {
-        minSdkVersion 18
-        targetSdkVersion versions.targetSdk
-        versionCode 1
-        versionName "1.0"
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        consumerProguardFiles 'proguard-rules.pro'
+    }
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
 
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    lint {
+        abortOnError false
     }
 
     buildTypes {
@@ -22,10 +31,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
     implementation project(':libraries:library_base')
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlin}"
+    testImplementation libs.junit
 }

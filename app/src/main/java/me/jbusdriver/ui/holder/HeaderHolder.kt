@@ -2,15 +2,15 @@ package me.jbusdriver.ui.holder
 
 import android.content.Context
 import android.graphics.Paint
-import android.support.v4.content.res.ResourcesCompat
-import android.support.v7.widget.LinearLayoutManager
+import androidx.core.content.res.ResourcesCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.text.TextUtils
 import android.view.View
 import android.widget.TextView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
-import kotlinx.android.synthetic.main.layout_detail_header.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.inflate
 import me.jbusdriver.mvp.bean.Header
@@ -30,9 +30,10 @@ class HeaderHolder(context: Context) : BaseHolder(context) {
     val view by lazy {
         weakRef.get()?.let {
             it.inflate(R.layout.layout_detail_header).apply {
-                rv_recycle_header.layoutManager = LinearLayoutManager(this.context)
-                headAdapter.bindToRecyclerView(rv_recycle_header)
-                rv_recycle_header.isNestedScrollingEnabled = true
+                val rvRecycleHeader = findViewById<RecyclerView>(R.id.rv_recycle_header)
+                rvRecycleHeader.layoutManager = LinearLayoutManager(this.context)
+                headAdapter.bindToRecyclerView(rvRecycleHeader)
+                rvRecycleHeader.isNestedScrollingEnabled = true
             }
         } ?: error("context ref is finish")
     }
@@ -86,7 +87,7 @@ class HeaderHolder(context: Context) : BaseHolder(context) {
 
     fun init(data: List<Header>) {
         //header
-        if (data.isEmpty()) view.tv_movie_head_none_tip.visibility = View.VISIBLE
+        if (data.isEmpty()) view.findViewById<View>(R.id.tv_movie_head_none_tip).visibility = View.VISIBLE
         else {
             //load header
             headAdapter.setNewData(data)

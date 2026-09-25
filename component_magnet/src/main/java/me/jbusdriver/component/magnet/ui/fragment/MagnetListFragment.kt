@@ -1,16 +1,16 @@
 package me.jbusdriver.component.magnet.ui.fragment
 
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.afollestad.materialdialogs.GravityEnum
 import com.afollestad.materialdialogs.MaterialDialog
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
 import io.reactivex.Flowable
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
-import kotlinx.android.synthetic.main.comp_magnet_layout_swipe_recycle.*
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.AppBaseRecycleFragment
 import me.jbusdriver.base.common.C
@@ -40,8 +40,8 @@ class MagnetListFragment : AppBaseRecycleFragment<MagnetListPresenter, MagnetLis
         }
 
     override val layoutId: Int = R.layout.comp_magnet_layout_swipe_recycle
-    override val swipeView: SwipeRefreshLayout?  by lazy { comp_magnet_sr_refresh }
-    override val recycleView: RecyclerView by lazy { comp_magnet_rv_recycle }
+    override val swipeView: SwipeRefreshLayout?  by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.comp_magnet_sr_refresh) }
+    override val recycleView: RecyclerView by lazy { requireView().findViewById<RecyclerView>(R.id.comp_magnet_rv_recycle) }
     override val layoutManager: RecyclerView.LayoutManager  by lazy { LinearLayoutManager(viewContext) }
 
 
@@ -121,7 +121,8 @@ class MagnetListFragment : AppBaseRecycleFragment<MagnetListPresenter, MagnetLis
     private fun showMagnetOptions(magnet: Magnet) {
         MaterialDialog.Builder(viewContext)
             .title(magnet.name)
-            .negativeText("复制链接")
+            .buttonsGravity(GravityEnum.CENTER)
+            .negativeText("复制")
             .onNegative { _, _ ->
                 viewContext.copy(magnet.link)
                 toast("复制成功")

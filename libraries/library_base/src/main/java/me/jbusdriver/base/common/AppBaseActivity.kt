@@ -4,8 +4,8 @@ import android.annotation.TargetApi
 import android.app.Application
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.LoaderManager
-import android.support.v4.content.Loader
+import androidx.loader.app.LoaderManager
+import androidx.loader.content.Loader
 import com.afollestad.materialdialogs.MaterialDialog
 import me.jbusdriver.base.KLog
 import me.jbusdriver.base.inflate
@@ -93,10 +93,10 @@ abstract class AppBaseActivity<P : BasePresenter<V>, in V : BaseView> : BaseActi
 
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState?.putBoolean(C.SavedInstanceState.RECREATION_SAVED_STATE, mFirstStart)
-        outState?.putInt(C.SavedInstanceState.LOADER_ID_SAVED_STATE, mUniqueLoaderIdentifier)
+        outState.putBoolean(C.SavedInstanceState.RECREATION_SAVED_STATE, mFirstStart)
+        outState.putInt(C.SavedInstanceState.LOADER_ID_SAVED_STATE, mUniqueLoaderIdentifier)
     }
 
     protected abstract val layoutId: Int

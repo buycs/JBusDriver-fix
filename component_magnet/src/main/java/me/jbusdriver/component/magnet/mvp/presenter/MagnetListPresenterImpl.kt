@@ -7,7 +7,7 @@ import me.jbusdriver.base.mvp.bean.PageInfo
 import me.jbusdriver.base.mvp.bean.ResultPageBean
 import me.jbusdriver.base.mvp.model.BaseModel
 import me.jbusdriver.base.mvp.presenter.AbstractRefreshLoadMorePresenterImpl
-import me.jbusdriver.component.magnet.MagnetPluginHelper
+import me.jbusdriver.component.magnet.MagnetLoaderApi
 import me.jbusdriver.component.magnet.mvp.MagnetListContract
 import me.jbusdriver.component.magnet.mvp.bean.Magnet
 import org.jsoup.nodes.Document
@@ -34,9 +34,8 @@ class MagnetListPresenterImpl(private val magnetLoaderKey: String, private val k
                 if (magnets.isNullOrEmpty()) Flowable.empty<List<Magnet>>() else Flowable.just(magnets)
             }.take(1)
         val loaderFormNet = Flowable.fromCallable {
-            // 插件 Phantom Service 代理对象
             return@fromCallable try {
-                GSON.fromJson<List<Magnet>>(MagnetPluginHelper.getMagnets(magnetLoaderKey, keyword, page))
+                GSON.fromJson<List<Magnet>>(MagnetLoaderApi.getMagnets(magnetLoaderKey, keyword, page))
             } catch (e: Exception) {
                 e.printStackTrace()
                 KLog.w("loadMagnets error happen $-> $e")
@@ -59,7 +58,7 @@ class MagnetListPresenterImpl(private val magnetLoaderKey: String, private val k
         onFirstLoad()
     }
 
-    override fun hasLoadNext(): Boolean = MagnetPluginHelper.hasNext(magnetLoaderKey).also {
+    override fun hasLoadNext(): Boolean = MagnetLoaderApi.hasNext(magnetLoaderKey).also {
         if (!it) {
             lastPage = pageInfo.activePage
         }
@@ -73,5 +72,5 @@ class MagnetListPresenterImpl(private val magnetLoaderKey: String, private val k
         super.onRefresh()
     }
 
-    override fun fetchMagLink(url: String) = MagnetPluginHelper.fetchMagLink(magnetLoaderKey, url)
+    override fun fetchMagLink(url: String) = MagnetLoaderApi.fetchMagLink(magnetLoaderKey, url)
 }

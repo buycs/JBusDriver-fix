@@ -7,7 +7,7 @@ import me.jbusdriver.common.bean.ILink
 import me.jbusdriver.common.bean.db.AllFirstParentDBCategoryGroup
 import me.jbusdriver.common.bean.db.LinkCategory
 import me.jbusdriver.db.bean.LinkItem
-import me.jbusdriver.http.JAVBusService
+import me.jbusdriver.http.BUS_SITE
 import me.jbusdriver.ui.data.enums.SearchType
 import java.util.*
 
@@ -82,7 +82,7 @@ data class SearchLink(val type: SearchType, var query: String) : ILink {
     @Transient
     override var categoryId: Int = LinkCategory.id ?: 10
     override val link: String
-        get() = "${JAVBusService.defaultFastUrl}${type.urlPathFormater.format(query)}"
+        get() = "$BUS_SITE${type.urlPathFormater.format(query)}"
 
 }
 

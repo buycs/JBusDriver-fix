@@ -7,11 +7,14 @@ import me.jbusdriver.common.JBus
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Url
-import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * Created by Administrator on 2017/4/8.
  */
+
+/** 站点地址写死在本地: 不再从云端 announce 取备用域名, 也不做探活换站 */
+const val BUS_SITE = "https://www.javbus.com"
+
 interface JAVBusService {
 
 
@@ -22,33 +25,21 @@ interface JAVBusService {
 
 
     companion object {
-        @Volatile
-        var defaultFastUrl = "https://www.seedmm.life"
+        /**
+         * 欧美站用过的顶级域。现在只剩识别作用: 收藏夹/历史记录里存量的老链接要靠它判断
+         * 是不是站外链接, 图片缓存键也据此决定用整串 URL 还是只用路径。
+         */
+        val xyzHostDomains: Set<String> = setOf(".one", ".hair", ".zone", ".red", ".xyz")
 
-        @Volatile
-        var defaultXyzUrl = "https://www.javbus.one"
-
-        // 站点探测在 IO 线程写入, Glide 在主线程读取; 写一次读多次, 用写时复制集合最省事
-        val xyzHostDomains: MutableSet<String> by lazy {
-            CopyOnWriteArraySet(listOf(topLevelDomain(defaultXyzUrl)))
-        }
-
-        /** 始终跟随当前 defaultFastUrl, 不再有可变的全局单例 */
         val INSTANCE: JAVBusService
-            get() = getInstance(defaultFastUrl)
+            get() = getInstance(BUS_SITE)
 
         fun getInstance(source: String): JAVBusService {
             return JBus.JBusServices.getOrPut(source) {
                 createService(source)
             }.apply {
-                KLog.d("instances : ${JBus.JBusServices}, defaultFastUrl : $defaultFastUrl")
+                KLog.d("instances : ${JBus.JBusServices}, service for : $source")
             }
-        }
-
-        private fun topLevelDomain(url: String): String {
-            val host = runCatching { okhttp3.HttpUrl.parse(url)?.host() }.getOrNull()
-                ?: url.substringAfter("://", url).substringBefore("/")
-            return "." + host.substringAfterLast(".")
         }
 
         private fun createService(url: String) =

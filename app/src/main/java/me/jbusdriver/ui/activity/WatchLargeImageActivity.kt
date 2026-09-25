@@ -6,10 +6,12 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Environment
-import android.support.v4.view.PagerAdapter
-import android.support.v4.view.ViewPager
+import androidx.viewpager.widget.PagerAdapter
+import androidx.viewpager.widget.ViewPager
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.ProgressBar
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.target.DrawableImageViewTarget
@@ -19,8 +21,6 @@ import io.reactivex.Single
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_watch_large_image.*
-import kotlinx.android.synthetic.main.layout_large_image_item.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.BaseActivity
@@ -28,17 +28,22 @@ import me.jbusdriver.base.http.OnProgressListener
 import me.jbusdriver.base.http.addProgressListener
 import me.jbusdriver.base.http.removeProgressListener
 import me.jbusdriver.common.toGlideNoHostUrl
+import me.jbusdriver.common.toGlideUrlReferedBy
+import me.jbusdriver.databinding.ActivityWatchLargeImageBinding
 import java.io.File
 import kotlin.random.Random
 
 
 class WatchLargeImageActivity : BaseActivity() {
 
+    private lateinit var binding: ActivityWatchLargeImageBinding
+
     private val urls by lazy {
         intent.getStringArrayListExtra(INTENT_IMAGE_URL) ?: emptyList<String>()
     }
     private val imageViewList: ArrayList<View> = arrayListOf()
     private val index by lazy { intent.getIntExtra(INDEX, -1) }
+    private val refererHost by lazy { intent.getStringExtra(INTENT_REFERER).orEmpty() }
     private val imageSaveDir by lazy {
         val packageName = JBusManager.context.packageName
         val pathSuffix = File.separator + "download" + File.separator + "image" + File.separator
@@ -50,7 +55,8 @@ class WatchLargeImageActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_watch_large_image)
+        binding = ActivityWatchLargeImageBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         initWidget()
     }
 
@@ -62,12 +68,13 @@ class WatchLargeImageActivity : BaseActivity() {
 
         urls.mapTo(imageViewList) {
             this@WatchLargeImageActivity.inflate(R.layout.layout_large_image_item).apply {
-                (pb_hor_progress.layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin = statusBarHeight
+                (findViewById<ProgressBar>(R.id.pb_hor_progress).layoutParams as? ViewGroup.MarginLayoutParams)?.topMargin =
+                    statusBarHeight
             }
         }
 
-        vp_largeImage.adapter = MyViewPagerAdapter()
-        vp_largeImage.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+        binding.vpLargeImage.adapter = MyViewPagerAdapter()
+        binding.vpLargeImage.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrollStateChanged(state: Int) {
             }
 
@@ -75,17 +82,17 @@ class WatchLargeImageActivity : BaseActivity() {
             }
 
             override fun onPageSelected(position: Int) {
-                this@WatchLargeImageActivity.tv_url_index.text = "${position + 1} / ${imageViewList.size}"
+                this@WatchLargeImageActivity.binding.tvUrlIndex.text = "${position + 1} / ${imageViewList.size}"
             }
         })
-        vp_largeImage.currentItem = if (index == -1) 0 else index
-        this@WatchLargeImageActivity.tv_url_index.text = "${vp_largeImage.currentItem + 1} / ${imageViewList.size}"
+        binding.vpLargeImage.currentItem = if (index == -1) 0 else index
+        binding.tvUrlIndex.text = "${binding.vpLargeImage.currentItem + 1} / ${imageViewList.size}"
 
-        iv_download.setOnClickListener {
-            val url = urls[vp_largeImage.currentItem]
+        binding.ivDownload.setOnClickListener {
+            val url = urls[binding.vpLargeImage.currentItem]
             val fileName = url.urlPath.split("/").lastOrNull()
                 ?: "${System.currentTimeMillis()}-${(Random(System.currentTimeMillis()).nextFloat() * 1000).toInt()}.jpg"
-            Single.fromFuture(GlideApp.with(this).download(url).submit())
+            Single.fromFuture(GlideApp.with(this).download(glideModel(url)).submit())
                 .doOnSuccess { source ->
                     //copy file
                     val target = File(imageSaveDir + fileName)
@@ -105,16 +112,21 @@ class WatchLargeImageActivity : BaseActivity() {
 
         private const val INTENT_IMAGE_URL = "INTENT_IMAGE_URL"
         private const val INDEX = "currentIndex"
+        private const val INTENT_REFERER = "refererHost"
 
-        fun startShow(context: Context, urls: List<String>, index: Int = -1) {
+        fun startShow(context: Context, urls: List<String>, index: Int = -1, refererHost: String = "") {
             val intent = Intent(context, WatchLargeImageActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             intent.putStringArrayListExtra(INTENT_IMAGE_URL, ArrayList(urls))
             intent.putExtra(INDEX, index)
+            intent.putExtra(INTENT_REFERER, refererHost)
             context.startActivity(intent)
         }
 
     }
+
+    private fun glideModel(url: String) =
+        if (refererHost.isBlank()) url.toGlideNoHostUrl else url.toGlideUrlReferedBy(refererHost)
 
     inner class MyViewPagerAdapter : PagerAdapter() {
 
@@ -131,8 +143,9 @@ class WatchLargeImageActivity : BaseActivity() {
         }
 
         private fun loadImage(view: View, position: Int) {
-            view.findViewById<View>(R.id.pb_hor_progress)?.animate()?.alpha(1f)?.setDuration(300)?.start()
-            val offset = Math.abs(vp_largeImage.currentItem - position)
+            val progressBar = view.findViewById<ProgressBar>(R.id.pb_hor_progress)
+            progressBar?.animate()?.alpha(1f)?.setDuration(300)?.start()
+            val offset = Math.abs(binding.vpLargeImage.currentItem - position)
             val priority = when (offset) {
                 in 0..1 -> Priority.IMMEDIATE
                 in 2..5 -> Priority.HIGH
@@ -141,12 +154,12 @@ class WatchLargeImageActivity : BaseActivity() {
             }
             val url = urls[position]
             GlideApp.with(this@WatchLargeImageActivity)
-                .load(url.toGlideNoHostUrl)
+                .load(glideModel(url))
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .error(R.drawable.ic_image_error)
                 .fitCenter()
                 .priority(priority)
-                .into(object : DrawableImageViewTarget(view.pv_image_large) {
+                .into(object : DrawableImageViewTarget(view.findViewById<ImageView>(R.id.pv_image_large)) {
                     val listener = object : OnProgressListener {
                         override fun onProgress(
                             imageUrl: String,
@@ -159,8 +172,8 @@ class WatchLargeImageActivity : BaseActivity() {
                             if (url != imageUrl) return
                             postMain {
                                 //view.pb_hor_progress.visibility = View.GONE
-                                view.pb_hor_progress.isIndeterminate = false
-                                view.pb_hor_progress?.apply {
+                                progressBar.isIndeterminate = false
+                                progressBar?.apply {
                                     progress = (bytesRead * 1.0f / totalBytes * 100.0f).toInt()
                                 }
                             }
@@ -172,21 +185,21 @@ class WatchLargeImageActivity : BaseActivity() {
                     }
 
                     override fun onLoadStarted(placeholder: Drawable?) {
-                        view.pb_hor_progress?.animate()?.alpha(1f)?.setDuration(300)?.start()
+                        progressBar?.animate()?.alpha(1f)?.setDuration(300)?.start()
                         addProgressListener(listener)
                         super.onLoadStarted(placeholder)
                     }
 
                     override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
                         super.onResourceReady(resource, transition)
-                        view.pb_hor_progress?.animate()?.alpha(0f)?.setDuration(300)?.start()
+                        progressBar?.animate()?.alpha(0f)?.setDuration(300)?.start()
                         removeProgressListener(listener)
                     }
 
                     override fun onLoadFailed(errorDrawable: Drawable?) {
                         super.onLoadFailed(errorDrawable)
                         removeProgressListener(listener)
-                        view.pb_hor_progress?.animate()?.alpha(0f)?.setDuration(300)?.start()
+                        progressBar?.animate()?.alpha(0f)?.setDuration(300)?.start()
                     }
 
                 })

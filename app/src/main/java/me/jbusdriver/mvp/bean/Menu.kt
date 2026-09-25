@@ -1,6 +1,6 @@
 package me.jbusdriver.mvp.bean
 
-import android.support.annotation.IdRes
+import androidx.annotation.IdRes
 import com.chad.library.adapter.base.entity.AbstractExpandableItem
 import com.chad.library.adapter.base.entity.MultiItemEntity
 import me.jbusdriver.R
@@ -51,18 +51,6 @@ data class MenuOp(@IdRes val id: Int, val name: String, val initializer: () -> B
 
             )
         }
-        val nav_xyz by lazy {
-            listOf(
-                MenuOp(R.id.movie_xyz, "欧美") { HomeMovieListFragment.newInstance(DataSourceType.XYZ) },
-                MenuOp(
-                    R.id.movie_xyz_actress,
-                    "欧美演员"
-                ) { ActressListFragment.newInstance(DataSourceType.XYZ_ACTRESSES) },
-                MenuOp(R.id.movie_xyz_genre, "欧美類別") { GenrePagesFragment.newInstance(DataSourceType.XYZ_GENRE) }
-
-            )
-        }
-
         val nav_other by lazy {
             listOf(
                 MenuOp(R.id.movie_hd, "高清") { HomeMovieListFragment.newInstance(DataSourceType.GENRE_HD) },

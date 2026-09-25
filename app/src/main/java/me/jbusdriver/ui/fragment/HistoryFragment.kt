@@ -1,17 +1,15 @@
 package me.jbusdriver.ui.fragment
 
 import android.os.Bundle
-import android.support.v4.util.ArrayMap
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import android.util.ArrayMap
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
-import kotlinx.android.synthetic.main.layout_recycle.*
-import kotlinx.android.synthetic.main.layout_swipe_recycle.*
 import me.jbusdriver.R
 import me.jbusdriver.base.GlideApp
 import me.jbusdriver.base.common.AppBaseRecycleFragment
@@ -37,8 +35,8 @@ class HistoryFragment :
     override fun createPresenter() = HistoryPresenterImpl()
 
     override val layoutId: Int = R.layout.layout_swipe_recycle
-    override val swipeView: SwipeRefreshLayout?  by lazy { sr_refresh }
-    override val recycleView: RecyclerView by lazy { rv_recycle }
+    override val swipeView: SwipeRefreshLayout?  by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.sr_refresh) }
+    override val recycleView: RecyclerView by lazy { view!!.findViewById<RecyclerView>(R.id.rv_recycle) }
     override val layoutManager: RecyclerView.LayoutManager  by lazy { LinearLayoutManager(viewContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +44,7 @@ class HistoryFragment :
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         menu.add(Menu.NONE, Menu.NONE, 10, "清除历史记录").apply {
             setIcon(R.drawable.ic_delete_24dp)

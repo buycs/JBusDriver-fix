@@ -5,12 +5,15 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
-import android.support.v7.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
-import kotlinx.android.synthetic.main.layout_collect_dir_edit.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.inflate
 import me.jbusdriver.base.toast
@@ -33,21 +36,24 @@ class CollectDirEditHolder(context: Context, parentCategory: Category) : BaseHol
     val view by lazy {
         weakRef.get()?.let { context ->
             context.inflate(R.layout.layout_collect_dir_edit).apply {
-                tv_category_add.setOnClickListener {
+                val llAddCategory = findViewById<LinearLayout>(R.id.ll_add_category)
+                val llAddCategoryEdit = findViewById<LinearLayout>(R.id.ll_add_category_edit)
+                val tvAddCategoryName = findViewById<EditText>(R.id.tv_add_category_name)
+                findViewById<TextView>(R.id.tv_category_add).setOnClickListener {
                     AnimatorSet().apply {
                         playTogether(
-                            ObjectAnimator.ofFloat(ll_add_category, "alpha", 1.0f, 0.0f),
-                            ObjectAnimator.ofFloat(ll_add_category_edit, "alpha", 0.0f, 1.0f),
-                            ObjectAnimator.ofFloat(ll_add_category_edit, "translationY", 60f, 0f).apply {
+                            ObjectAnimator.ofFloat(llAddCategory, "alpha", 1.0f, 0.0f),
+                            ObjectAnimator.ofFloat(llAddCategoryEdit, "alpha", 0.0f, 1.0f),
+                            ObjectAnimator.ofFloat(llAddCategoryEdit, "translationY", 60f, 0f).apply {
                                 addListener(
 
                                     object : AnimatorListenerAdapter() {
-                                        override fun onAnimationStart(animation: Animator?) {
-                                            ll_add_category_edit.visibility = View.VISIBLE
+                                        override fun onAnimationStart(animation: Animator) {
+                                            llAddCategoryEdit.visibility = View.VISIBLE
                                         }
 
-                                        override fun onAnimationEnd(animation: Animator?) {
-                                            ll_add_category.visibility = View.GONE
+                                        override fun onAnimationEnd(animation: Animator) {
+                                            llAddCategory.visibility = View.GONE
                                         }
                                     }
                                 )
@@ -59,8 +65,8 @@ class CollectDirEditHolder(context: Context, parentCategory: Category) : BaseHol
 
                 }
 
-                tv_category_add_confirm.setOnClickListener {
-                    val txt = tv_add_category_name.text.toString().trim()
+                findViewById<TextView>(R.id.tv_category_add_confirm).setOnClickListener {
+                    val txt = tvAddCategoryName.text.toString().trim()
                     val add = if (txt.isNotBlank()) {
                         if (collectDirs.any { it.name == txt }) {
                             toast("$txt 分类已存在")
@@ -80,19 +86,19 @@ class CollectDirEditHolder(context: Context, parentCategory: Category) : BaseHol
                         addActionsParams.add(category)
                         categoryAdapter.addData(category)
                         categoryAdapter.notifyItemChanged(categoryAdapter.data.size - 1)
-                        tv_add_category_name.setText("")
+                        tvAddCategoryName.setText("")
                     }
 
                     AnimatorSet().apply {
                         playTogether(
-                            ObjectAnimator.ofFloat(ll_add_category, "alpha", 0.0f, 1.0f),
-                            ObjectAnimator.ofFloat(ll_add_category_edit, "alpha", 1.0f, 0.0f),
-                            ObjectAnimator.ofFloat(ll_add_category_edit, "translationY", 0f, -60f).apply {
+                            ObjectAnimator.ofFloat(llAddCategory, "alpha", 0.0f, 1.0f),
+                            ObjectAnimator.ofFloat(llAddCategoryEdit, "alpha", 1.0f, 0.0f),
+                            ObjectAnimator.ofFloat(llAddCategoryEdit, "translationY", 0f, -60f).apply {
                                 addListener(
                                     object : AnimatorListenerAdapter() {
-                                        override fun onAnimationEnd(animation: Animator?) {
-                                            ll_add_category.visibility = View.VISIBLE
-                                            ll_add_category_edit.visibility = View.GONE
+                                        override fun onAnimationEnd(animation: Animator) {
+                                            llAddCategory.visibility = View.VISIBLE
+                                            llAddCategoryEdit.visibility = View.GONE
                                         }
                                     }
                                 )
@@ -103,7 +109,7 @@ class CollectDirEditHolder(context: Context, parentCategory: Category) : BaseHol
                     }.start()
                 }
 
-                rv_category_list.apply {
+                findViewById<RecyclerView>(R.id.rv_category_list).apply {
                     layoutManager = LinearLayoutManager(context)
                     categoryAdapter.bindToRecyclerView(this)
                     categoryAdapter.setOnItemChildClickListener { _, view, position ->

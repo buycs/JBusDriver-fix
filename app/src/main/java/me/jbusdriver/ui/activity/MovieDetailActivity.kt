@@ -4,29 +4,30 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
-import android.support.design.widget.AppBarLayout
-import android.support.design.widget.FloatingActionButton
-import android.support.v4.content.res.ResourcesCompat
-import android.support.v7.widget.Toolbar
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import androidx.core.content.res.ResourcesCompat
+import androidx.appcompat.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import com.billy.cc.core.component.CC
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.target.DrawableImageViewTarget
+import android.view.ViewGroup
 import com.gyf.barlibrary.ImmersionBar
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_movie_detail.*
-import kotlinx.android.synthetic.main.content_movie_detail.*
-import kotlinx.android.synthetic.main.layout_load_magnet.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.GlideApp
 import me.jbusdriver.base.common.AppBaseActivity
 import me.jbusdriver.base.common.C
 import me.jbusdriver.base.inflate
-import me.jbusdriver.base.toast
 import me.jbusdriver.base.urlPath
 import me.jbusdriver.common.toGlideNoHostUrl
+import me.jbusdriver.component.magnet.ui.activity.MagnetPagerListActivity
 import me.jbusdriver.mvp.MovieDetailContract
 import me.jbusdriver.mvp.bean.Movie
 import me.jbusdriver.mvp.bean.MovieDetail
@@ -53,6 +54,11 @@ class MovieDetailActivity :
     private val relativeMovieHolder by lazy { RelativeMovieHolder(this) }
     private val forumPostsHolder by lazy { ForumPostsHolder(this) }
 
+    private val sr_refresh: SwipeRefreshLayout by lazy { findViewById<SwipeRefreshLayout>(R.id.sr_refresh) }
+    private val app_bar: AppBarLayout by lazy { findViewById<AppBarLayout>(R.id.app_bar) }
+    private val ll_movie_detail: LinearLayout by lazy { findViewById<LinearLayout>(R.id.ll_movie_detail) }
+    private val iv_movie_cover: ImageView by lazy { findViewById<ImageView>(R.id.iv_movie_cover) }
+
     override val url by lazy { intent.getStringExtra(C.BundleKey.Key_1) }
 
 
@@ -69,6 +75,20 @@ class MovieDetailActivity :
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = movie?.des
         immersionBar.transparentStatusBar().titleBar(toolbar).statusBarAlpha(0.12f).init()
+        // ImmersionBar 的 titleBar 在这页没起作用, 收起封面后标题正好压在状态栏上。
+        // 给 Toolbar 补一个状态栏高的上边距: CollapsingToolbarLayout 把 pinned 子 View 的
+        // 「高度 + 上下 margin」算进折叠后的最小高度, 所以收起后顶栏撑高、标题不再被挡,
+        // 展开态的封面仍然铺到屏幕顶 —— 那个出血是有意保留的
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            val barTop = resources.getDimensionPixelSize(resourceId)
+            (toolbar.layoutParams as ViewGroup.MarginLayoutParams).let { lp ->
+                if (lp.topMargin != barTop) {
+                    lp.topMargin = barTop
+                    toolbar.layoutParams = lp
+                }
+            }
+        }
         initWidget()
         initData()
 
@@ -138,26 +158,18 @@ class MovieDetailActivity :
         ll_movie_detail.addView(headHolder.view)
         ll_movie_detail.addView(sampleHolder.view)
         ll_movie_detail.addView(viewContext.inflate(R.layout.layout_load_magnet).apply {
-            this.tv_movie_look_magnet.setTextColor(
+            val lookMagnet = findViewById<TextView>(R.id.tv_movie_look_magnet)
+            lookMagnet.setTextColor(
                 ResourcesCompat.getColor(
-                    this@apply.resources,
+                    resources,
                     R.color.colorPrimaryDark,
                     null
                 )
             )
-            this.tv_movie_look_magnet.paintFlags =
-                this.tv_movie_look_magnet.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+            lookMagnet.paintFlags = lookMagnet.paintFlags or Paint.UNDERLINE_TEXT_FLAG
             setOnClickListener {
-                val code = movie?.code?.replace("-", " ") ?: url.urlPath
-                CC.obtainBuilder(C.Components.Magnet)
-                    .setActionName("show")
-                    .addParam("keyword", code)
-                    .addParam("link", movie?.link.orEmpty())
-                    .build().call().let { res ->
-                        if (!res.isSuccess) {
-                            toast(res.toString())
-                        }
-                    }
+                val code = movie?.code?.replace("-", " ") ?: url.orEmpty().urlPath
+                MagnetPagerListActivity.start(this@MovieDetailActivity, code, movie?.link.orEmpty())
             }
         })
         ll_movie_detail.addView(actressHolder.view)
@@ -197,20 +209,16 @@ class MovieDetailActivity :
 
 
     override fun showLoading() {
-        sr_refresh?.let {
-            if (!it.isRefreshing) {
-                it.post {
-                    it.setProgressViewOffset(false, 0, statusBarHeight)
-                    it.isRefreshing = true
-                }
+        if (!sr_refresh.isRefreshing) {
+            sr_refresh.post {
+                sr_refresh.setProgressViewOffset(false, 0, statusBarHeight)
+                sr_refresh.isRefreshing = true
             }
-        } ?: super.showLoading()
+        }
     }
 
     override fun dismissLoading() {
-        sr_refresh?.let {
-            it.post { it.isRefreshing = false }
-        } ?: super.dismissLoading()
+        sr_refresh.post { sr_refresh.isRefreshing = false }
     }
 
     override fun <T> showContent(data: T?) {

@@ -39,6 +39,7 @@
             android:label="@string/app_name" />
         <activity
             android:name="me.jbusdriver.ui.activity.SplashActivity"
+            android:exported="true"
             android:theme="@style/AppTheme.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -54,6 +55,8 @@
             android:launchMode="singleTop" />
         <activity android:name="me.jbusdriver.ui.activity.SettingActivity" />
         <activity android:name="me.jbusdriver.ui.activity.ForumThreadActivity" />
+        <activity android:name="me.jbusdriver.ui.activity.ForumBoardActivity" />
+        <activity android:name="me.jbusdriver.ui.activity.ForumThreadListActivity" />
 
         <service
             android:name=".ui.task.LoadCollectService"

@@ -49,21 +49,17 @@ private fun findProgressListener(listener: OnProgressListener): WeakReference<On
 
 class ProgressResponseBody(
     private val imageUrl: String,
-    private val responseBody: ResponseBody?,
+    private val responseBody: ResponseBody,
     private val progressListener: OnProgressListener?
 ) : ResponseBody() {
-    private var bufferedSource: BufferedSource? = null
+    // okhttp4 里 source() 的返回类型不再可空,包装只做一次
+    private val bufferedSource: BufferedSource by lazy { source(responseBody.source()).buffer() }
 
-    override fun contentType() = responseBody?.contentType()
+    override fun contentType() = responseBody.contentType()
 
-    override fun contentLength() = responseBody?.contentLength() ?: 0L
+    override fun contentLength() = responseBody.contentLength()
 
-    override fun source(): BufferedSource? {
-        if (bufferedSource == null && responseBody != null) {
-            bufferedSource = Okio.buffer(source(responseBody.source()))
-        }
-        return bufferedSource
-    }
+    override fun source(): BufferedSource = bufferedSource
 
     private fun source(source: Source): Source {
         return object : ForwardingSource(source) {

@@ -66,29 +66,6 @@
     </group>
 
     <group
-        android:id="@+id/nav_xyz"
-        android:checkableBehavior="single"
-        android:menuCategory="container">
-        <item
-            android:id="@+id/movie_xyz"
-            android:icon="@drawable/ic_public_black_24dp"
-            android:title="欧美"
-            android:visible="false"/>
-
-        <item
-            android:id="@+id/movie_xyz_actress"
-            android:icon="@drawable/ic_insert_emoticon_black_24dp"
-            android:title="欧美演员"
-            android:visible="false" />
-
-        <item
-            android:id="@+id/movie_xyz_genre"
-            android:icon="@drawable/ic_near_me_black_24dp"
-            android:title="欧美類別"
-            android:visible="false"/>
-    </group>
-
-    <group
         android:id="@+id/nav_other"
         android:checkableBehavior="single"
         android:menuCategory="system">

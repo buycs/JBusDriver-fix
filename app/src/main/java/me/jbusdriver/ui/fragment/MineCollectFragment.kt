@@ -1,7 +1,7 @@
 package me.jbusdriver.ui.fragment
 
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import android.view.Menu
 import android.view.MenuInflater
 import me.jbusdriver.R
@@ -34,13 +34,13 @@ class MineCollectFragment :
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        if (AppConfiguration.enableCategory) inflater?.inflate(R.menu.menu_collect, menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        if (AppConfiguration.enableCategory) inflater.inflate(R.menu.menu_collect, menu)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?) {
+    override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
-        menu?.findItem(R.id.action_collect_dir_edit)?.isVisible = AppConfiguration.enableCategory
+        menu.findItem(R.id.action_collect_dir_edit)?.isVisible = AppConfiguration.enableCategory
     }
 
 

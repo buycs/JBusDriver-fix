@@ -80,7 +80,6 @@ dependencies {
     api libs.rxandroid
     api libs.rxkotlin
     api libs.rxrelay
-    api 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.5@aar'
 
     // 数据库：sqlbrite3 仍绑 android.arch 命名空间，迁移到 AndroidX 方案前保持原坐标
     api 'com.squareup.sqlbrite3:sqlbrite:3.2.0'

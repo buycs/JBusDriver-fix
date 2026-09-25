@@ -26,5 +26,5 @@ dependencyResolutionManagement {
 rootProject.name = 'JBusDriver'
 
 include ':app'
-include ':component_interceptors', ':component_magnet', ':component_plugin_manager'
+include ':component_magnet'
 include ':libraries:library_base', ':libraries:library_common_bean'

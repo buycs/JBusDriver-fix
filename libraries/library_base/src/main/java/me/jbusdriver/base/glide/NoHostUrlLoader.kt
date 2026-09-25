@@ -57,9 +57,8 @@ class NoHostImageLoader(private val fac: okhttp3.Call.Factory) :
         }
         val hostHeaders = builder.build()
 
-        val gUrl = object : GlideUrl(model.httpUrl) {
+        val gUrl = object : GlideUrl(model.httpUrl, hostHeaders) {
             override fun getCacheKey() = model.getId()
-            override fun getHeaders() = hostHeaders
         }
         KLog.d("load for url $model -> $gUrl")
         return ModelLoader.LoadData(gUrl, OkHttpStreamFetcher(fac, gUrl))

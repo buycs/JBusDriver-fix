@@ -2,8 +2,9 @@ package me.jbusdriver.ui.holder
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.support.v7.graphics.Palette
-import android.support.v7.widget.LinearLayoutManager
+import androidx.palette.graphics.Palette
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.request.target.BitmapImageViewTarget
@@ -11,7 +12,6 @@ import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
 import io.reactivex.Flowable
 import io.reactivex.rxkotlin.addTo
-import kotlinx.android.synthetic.main.layout_detail_relative_movies.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.GlideApp
 import me.jbusdriver.base.SchedulersCompat
@@ -34,10 +34,11 @@ class RelativeMovieHolder(context: Context) : BaseHolder(context) {
     val view by lazy {
         weakRef.get()?.let {
             it.inflate(R.layout.layout_detail_relative_movies).apply {
-                rv_recycle_relative_movies.layoutManager =
+                val rvRecycleRelativeMovies = findViewById<RecyclerView>(R.id.rv_recycle_relative_movies)
+                rvRecycleRelativeMovies.layoutManager =
                         LinearLayoutManager(it, LinearLayoutManager.HORIZONTAL, false)
-                relativeAdapter.bindToRecyclerView(rv_recycle_relative_movies)
-                rv_recycle_relative_movies.isNestedScrollingEnabled = true
+                relativeAdapter.bindToRecyclerView(rvRecycleRelativeMovies)
+                rvRecycleRelativeMovies.isNestedScrollingEnabled = true
                 relativeAdapter.setOnItemClickListener { _, v, position ->
                     relativeAdapter.data.getOrNull(position)?.let {
                         MovieDetailActivity.start(v.context, it)
@@ -120,7 +121,7 @@ class RelativeMovieHolder(context: Context) : BaseHolder(context) {
 
     fun init(relativeMovies: List<Movie>) {
         //actress
-        if (relativeMovies.isEmpty()) view.tv_movie_relative_none_tip.visibility = View.VISIBLE
+        if (relativeMovies.isEmpty()) view.findViewById<View>(R.id.tv_movie_relative_none_tip).visibility = View.VISIBLE
         else {
             //load header
             relativeAdapter.setNewData(relativeMovies)

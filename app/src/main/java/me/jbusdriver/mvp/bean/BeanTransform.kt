@@ -1,7 +1,7 @@
 package me.jbusdriver.mvp.bean
 
 import android.text.TextUtils
-import me.jbusdriver.http.JAVBusService
+import me.jbusdriver.http.BUS_SITE
 import org.jsoup.nodes.Document
 
 
@@ -22,10 +22,18 @@ fun parseMovieDetails(doc: Document): MovieDetail {
             Header(split.first(), split.getOrNull(1)?.trim() ?: "", "")
         } //解析普通信息
 
+    // 描述仍然解析出来给收藏/历史记录用, 只是详情信息区不再展示这一行
     val content = doc.select("[name=description]").attr("content")?.trim() ?: ""
-    headers.add(Header("描述", content, ""))
+    headers.add(Header("名稱", title, ""))
+
+    val actresses = doc.select("#avatar-waterfall .avatar-box").map {
+        ActressInfo(it.text(), it.select("img").attr("src").wrapImage(), it.attr("href"))
+    }
 
     headersContainer.select("p[class!=star-show]:has(span:not([class=genre])):has(a)")
+        // 女优那一行下方已有头像列表, 文字区不再重复一遍。
+        // 站方把这行做成一组 /star/ 链接, 认 href 比认名字稳: 头像下的名字站点会截断
+        .filterNot { p -> p.select("a").all { it.attr("href").contains("/star/") } }
         .mapTo(headers) {
             val split = it.text().split(":")
             Header(
@@ -38,10 +46,6 @@ fun parseMovieDetails(doc: Document): MovieDetail {
         Genre(it.text(), it.select("a").attr("href"))
     }//解析分类
 
-
-    val actresses = doc.select("#avatar-waterfall .avatar-box").map {
-        ActressInfo(it.text(), it.select("img").attr("src").wrapImage(), it.attr("href"))
-    }
 
     val samples = doc.select("#sample-waterfall .sample-box").map {
         val thumb = it.select("img").attr("src").wrapImage()
@@ -111,58 +115,4 @@ fun parseActressList(doc: Document): List<ActressInfo> {
     } ?: emptyList()
 }
 
-fun String.wrapImage() = if (this.startsWith("http")) this else JAVBusService.defaultFastUrl + this
-
-/**
- * 论坛帖子内容
- */
-fun parseForumThread(doc: Document): ForumThreadPost {
-    val title = doc.select("#thread_subject").text().ifBlank { doc.title().substringBefore(" - ") }
-    val floors = doc.select("div[id^=post_]").mapNotNull { postBox ->
-        val postEl = postBox.select("[id^=postmessage_]").firstOrNull()
-        if (postEl == null) return@mapNotNull null
-        val floorNo = if (postBox.hasClass("nthread_firstpostbox")) "樓主"
-        else postBox.select(".postnum_1 em").text() + "#"
-        val author = postBox.select("a.xw1").text().ifBlank { "匿名" }
-        val time = postBox.select("em[id^=authorposton]").text()
-            .substringAfter("發表於").trim()
-        val segments = parseSegments(postEl)
-        ForumFloor(floorNo, author, time, segments)
-    }
-    android.util.Log.d("ForumParse", "title=[$title] floors=${floors.size}")
-
-    val hasNext = doc.select("div.pg a.nxt").isNotEmpty()
-    val nextUrl = if (hasNext) {
-        doc.select("div.pg a.nxt").first().absUrl("href")
-            .ifBlank { doc.select("div.pg a.nxt").first().attr("href") }
-            .let { if (it.startsWith("http")) it else "https://www.javbus.com/forum/" + it.trimStart('/') }
-    } else ""
-
-    return ForumThreadPost(title, floors, hasNext, nextUrl)
-}
-
-private fun parseSegments(postEl: org.jsoup.nodes.Element): List<ForumSegment> {
-    val segments = mutableListOf<ForumSegment>()
-    val sb = StringBuilder()
-    val body = postEl.clone()
-    body.select("script").remove()
-    body.select("br").before(" ") //br 转空格，保证文本分段
-    body.childNodes().forEach { node ->
-        if (node is org.jsoup.nodes.TextNode) {
-            sb.append(node.text())
-        } else if (node is org.jsoup.nodes.Element) {
-            if (node.tagName() == "img") {
-                if (sb.isNotBlank()) {
-                    segments.add(ForumSegment.Text(sb.toString().trim()))
-                    sb.setLength(0)
-                }
-                val src = node.absUrl("src")
-                if (src.startsWith("http")) segments.add(ForumSegment.Image(src))
-            } else {
-                sb.append(node.text())
-            }
-        }
-    }
-    if (sb.isNotBlank()) segments.add(ForumSegment.Text(sb.toString().trim()))
-    return segments
-}
+fun String.wrapImage() = if (this.startsWith("http")) this else BUS_SITE + this

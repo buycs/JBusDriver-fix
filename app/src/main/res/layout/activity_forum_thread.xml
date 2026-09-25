@@ -5,59 +5,26 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        app:theme="@style/AppTheme.AppBarOverlay"
-        app:popupTheme="@style/AppTheme.PopupOverlay" />
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:theme="@style/AppTheme.AppBarOverlay" />
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-        <android.support.v4.widget.NestedScrollView
-            android:id="@+id/nsv_content"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_floors"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tv_thread_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:textIsSelectable="true"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#e0e0e0" />
-
-                <LinearLayout
-                    android:id="@+id/ll_floors"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-
-                <Button
-                    android:id="@+id/btn_load_more"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:layout_margin="16dp"
-                    android:text="加载更多楼层"
-                    android:visibility="gone" />
-            </LinearLayout>
-        </android.support.v4.widget.NestedScrollView>
+            android:clipToPadding="false"
+            android:scrollbars="vertical" />
 
         <ProgressBar
             android:id="@+id/pb_loading"
@@ -72,7 +39,48 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="24dp"
             android:textColor="#888888"
             android:visibility="gone" />
     </FrameLayout>
+
+    <View
+        android:id="@+id/v_pagination_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/forum_divider"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/ll_pagination"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@android:color/white"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_page_info"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/forum_time"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tv_page_next"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:minWidth="84dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="@color/forum_board_tag"
+            android:textSize="14sp" />
+    </LinearLayout>
 </LinearLayout>

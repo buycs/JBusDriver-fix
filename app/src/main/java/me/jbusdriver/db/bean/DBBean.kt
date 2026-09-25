@@ -6,7 +6,7 @@ import me.jbusdriver.base.*
 import me.jbusdriver.base.mvp.bean.PageInfo
 import me.jbusdriver.common.bean.ILink
 import me.jbusdriver.common.isEndWithXyzHost
-import me.jbusdriver.http.JAVBusService
+import me.jbusdriver.http.BUS_SITE
 import me.jbusdriver.mvp.bean.*
 import me.jbusdriver.ui.activity.MovieDetailActivity
 import me.jbusdriver.ui.activity.MovieListActivity
@@ -63,7 +63,7 @@ private fun doGet(type: Int, jsonStr: String) = when (type) {
 }.let { data ->
     val isXyz = data.link.urlHost.isEndWithXyzHost
     if (isXyz) return@let data
-    val host: String by lazy { JAVBusService.defaultFastUrl }
+    val host: String = BUS_SITE
     return@let when (data) {
         is Movie -> {
             val linkChange = data.link.urlHost != host

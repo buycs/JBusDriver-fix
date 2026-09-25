@@ -1,17 +1,16 @@
 package me.jbusdriver.ui.holder
 
 import android.content.Context
-import android.support.v7.widget.GridLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.text.TextUtils
 import android.view.View
 import android.widget.ImageView
 import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
-import kotlinx.android.synthetic.main.layout_detail_image_samples.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.GlideApp
-import me.jbusdriver.base.displayMetrics
 import me.jbusdriver.base.dpToPx
 import me.jbusdriver.base.inflate
 import me.jbusdriver.common.toGlideNoHostUrl
@@ -31,16 +30,13 @@ class ImageSampleHolder(context: Context) : BaseHolder(context) {
     val view by lazy {
         weakRef.get()?.let {
             it.inflate(R.layout.layout_detail_image_samples).apply {
-                val spanCount = with(context.displayMetrics.widthPixels) {
-                    when {
-                        this <= 1440 -> 3
-                        else -> 4
-                    }
-                }
-                rv_recycle_images.layoutManager = GridLayoutManager(it, spanCount)
-                rv_recycle_images.addItemDecoration(GridSpacingItemDecoration(spanCount, it.dpToPx(8f), false))
-                imageSampleAdapter.bindToRecyclerView(rv_recycle_images)
-                rv_recycle_images.isNestedScrollingEnabled = true
+                val rvRecycleImages = findViewById<RecyclerView>(R.id.rv_recycle_images)
+                rvRecycleImages.layoutManager = GridLayoutManager(it, SPAN_COUNT)
+                rvRecycleImages.addItemDecoration(
+                    GridSpacingItemDecoration(SPAN_COUNT, it.dpToPx(8f), it.dpToPx(8f), false)
+                )
+                imageSampleAdapter.bindToRecyclerView(rvRecycleImages)
+                rvRecycleImages.isNestedScrollingEnabled = true
                 imageSampleAdapter.setOnItemClickListener { _, v, position ->
                     if (position < imageSampleAdapter.data.size) {
                         val destination = arrayListOf<String>()
@@ -77,11 +73,15 @@ class ImageSampleHolder(context: Context) : BaseHolder(context) {
 
     fun init(data: List<ImageSample>) {
         //imageSamples
-        if (data.isEmpty()) view.tv_movie_images_none_tip.visibility = View.VISIBLE
+        if (data.isEmpty()) view.findViewById<View>(R.id.tv_movie_images_none_tip).visibility = View.VISIBLE
         else {
             //load header
             imageSampleAdapter.setNewData(data)
         }
+    }
+
+    companion object {
+        private const val SPAN_COUNT = 4
     }
 
 }

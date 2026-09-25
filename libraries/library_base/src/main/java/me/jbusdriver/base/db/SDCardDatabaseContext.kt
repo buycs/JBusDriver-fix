@@ -90,10 +90,14 @@ abstract class SDCardDatabaseContext
     }
 
     override fun openOrCreateDatabase(name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?) =
-        SQLiteDatabase.openOrCreateDatabase(getDatabasePath(name), null)
+        openOrCreate(name)
 
     override fun openOrCreateDatabase(
         name: String, mode: Int, factory: SQLiteDatabase.CursorFactory?,
         errorHandler: DatabaseErrorHandler?
-    ) = SQLiteDatabase.openOrCreateDatabase(getDatabasePath(name), null)
+    ) = openOrCreate(name)
+
+    private fun openOrCreate(name: String) = SQLiteDatabase.openOrCreateDatabase(
+        getDatabasePath(name) ?: error("can not create db file for $name"), null
+    )
 }

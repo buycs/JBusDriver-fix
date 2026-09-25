@@ -2,7 +2,6 @@ package me.jbusdriver.mvp.presenter
 
 import io.reactivex.Flowable
 import me.jbusdriver.base.*
-import me.jbusdriver.base.common.C
 import me.jbusdriver.base.mvp.bean.PageInfo
 import me.jbusdriver.base.mvp.model.AbstractBaseModel
 import me.jbusdriver.base.mvp.model.BaseModel
@@ -22,22 +21,12 @@ import org.jsoup.nodes.Document
  */
 open class HomeMovieListPresenterImpl(val type: DataSourceType, val link: ILink) : LinkAbsPresenterImpl<Movie>(link) {
 
-    private val urls by lazy {
-        CacheLoader.readCacheMap(C.Cache.BUS_URLS) ?: arrayMapof<String, String>()
-    }
     private val saveKey: String
         inline get() = "${type.key}$IsAll"
-    private val service by lazy {
-        JAVBusService.getInstance(
-            urls[type.key]
-                ?: JAVBusService.defaultFastUrl
-        )
-    }
+    private val service by lazy { JAVBusService.getInstance(type.url) }
 
     private val loadFromNet = { page: Int ->
-        val urlN = urls.getOrElse(type.key) { JAVBusService.defaultFastUrl }.let { url ->
-            return@let if (page == 1) url else "$url${type.prefix}$page"
-        }
+        val urlN = if (page == 1) type.url else "${type.url}${type.prefix}$page"
         KLog.d("loadFromNet $urlN")
         //existmag=all
         //add his
@@ -45,10 +34,7 @@ open class HomeMovieListPresenterImpl(val type: DataSourceType, val link: ILink)
         addHistory(pageLink)
         service.get(urlN, if (IsAll) "all" else "").addUserCase().doOnNext {
             if (page == 1 && !it.isNullOrBlank()) CacheLoader.lru.put(saveKey, it!!)
-        }.map { Jsoup.parse(it) }.doOnError {
-            //可能网址被封
-            CacheLoader.acache.remove(C.Cache.BUS_URLS)
-        }
+        }.map { Jsoup.parse(it) }
     }
 
 

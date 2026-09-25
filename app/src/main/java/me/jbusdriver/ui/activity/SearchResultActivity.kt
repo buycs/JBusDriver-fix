@@ -5,22 +5,25 @@ import android.content.Intent
 import android.os.Bundle
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
-import kotlinx.android.synthetic.main.activity_search_result.*
 import me.jbusdriver.R
 import me.jbusdriver.base.RxBus
 import me.jbusdriver.base.common.BaseActivity
 import me.jbusdriver.base.common.C
+import me.jbusdriver.databinding.ActivitySearchResultBinding
 import me.jbusdriver.mvp.bean.SearchWord
 import me.jbusdriver.ui.fragment.SearchResultPagesFragment
 
 class SearchResultActivity : BaseActivity() {
 
+    private lateinit var binding: ActivitySearchResultBinding
+
     private val searchWord by lazy { intent.getStringExtra(C.BundleKey.Key_1) ?: error("must set search word") }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_search_result)
-        setSupportActionBar(toolbar)
+        binding = ActivitySearchResultBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setTitle(searchWord)
         //go to SearchResultPagesFragment

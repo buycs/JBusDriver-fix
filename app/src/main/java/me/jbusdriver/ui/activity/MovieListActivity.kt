@@ -3,7 +3,7 @@ package me.jbusdriver.ui.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.widget.Toolbar
+import androidx.appcompat.widget.Toolbar
 import android.widget.Toast
 import me.jbusdriver.R
 import me.jbusdriver.base.common.AppBaseActivity

@@ -3,167 +3,169 @@ package me.jbusdriver.ui.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.widget.Toolbar
 import android.view.View
-import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.TextView
-import io.reactivex.Flowable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_forum_thread.*
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import me.jbusdriver.R
-import me.jbusdriver.base.GlideApp
-import me.jbusdriver.base.common.BaseActivity
 import me.jbusdriver.base.toast
-import me.jbusdriver.common.toGlideNoHostUrl
-import me.jbusdriver.http.JAVBusService
+import me.jbusdriver.databinding.ActivityForumThreadBinding
+import me.jbusdriver.mvp.bean.FORUM_SITE_HOST
 import me.jbusdriver.mvp.bean.ForumFloor
-import me.jbusdriver.mvp.bean.ForumSegment
 import me.jbusdriver.mvp.bean.ForumThreadPost
 import me.jbusdriver.mvp.bean.parseForumThread
-import org.jsoup.Jsoup
+import me.jbusdriver.ui.adapter.ForumFloorAdapter
 
-class ForumThreadActivity : BaseActivity() {
+/**
+ * 帖子正文。只读: 能翻楼层、能看大图, 不回复不发帖。
+ *
+ * 楼层是连续追加的: 滚到底自动接下一页, 底部分页条是同一件事的按钮版,
+ * 所以这里只有「往后」一个方向, 不做跳页。
+ */
+class ForumThreadActivity : ForumBaseActivity() {
+
+    private lateinit var binding: ActivityForumThreadBinding
 
     private val url by lazy { intent.getStringExtra(EXTRA_URL).orEmpty() }
 
-    private var nextUrl: String = ""
-    private var disposed: Disposable? = null
+    private var nextUrl = ""
+    private var requesting = false
+    private var firstPage = 1
+    private var loadedPage = 1
+    private var totalPage = 1
+
+    private val floorAdapter by lazy {
+        ForumFloorAdapter { floor, index -> showImage(floor, index) }
+    }
+
+    private val autoPaging = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+            if (dy <= 0) return
+            val lm = rv.layoutManager as? LinearLayoutManager ?: return
+            val count = rv.adapter?.itemCount ?: 0
+            if (count > 0 && lm.findLastVisibleItemPosition() >= count - AUTO_AHEAD) {
+                loadFloors(nextUrl, append = true)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_forum_thread)
-        setSupportActionBar(findViewById<Toolbar>(R.id.toolbar))
+        binding = ActivityForumThreadBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        fitSystemBars(binding.toolbar, binding.root)
+        setSupportActionBar(binding.toolbar)
         supportActionBar?.setHomeButtonEnabled(true)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        btn_load_more.setOnClickListener { loadMore() }
-        loadFirstPage()
-    }
 
-    private fun loadFirstPage() {
+        binding.rvFloors.layoutManager = LinearLayoutManager(this)
+        floorAdapter.bindToRecyclerView(binding.rvFloors)
+        binding.rvFloors.addOnScrollListener(autoPaging)
+        binding.tvPageNext.setOnClickListener { loadFloors(nextUrl, append = true) }
+
         if (url.isBlank()) {
             showError("无效的链接")
             return
         }
-        pb_loading.visibility = View.VISIBLE
-        fetchAndParse(url) { post ->
-            showThread(post)
-        }
+        loadFloors(url, append = false)
     }
 
-    private fun loadMore() {
-        if (nextUrl.isBlank()) return
-        btn_load_more.isEnabled = false
-        fetchAndParse(nextUrl) { post ->
-            addFloors(post)
-        }
-    }
-
-    private fun fetchAndParse(requestUrl: String, onSuccess: (ForumThreadPost) -> Unit) {
-        disposed?.dispose()
-        disposed = Flowable.fromCallable {
-            val page = JAVBusService.INSTANCE.get(requestUrl).blockingFirst()
-            parseForumThread(Jsoup.parse(page))
-        }.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { onSuccess(it) },
-                {
-                    // 失败一定要恢复按钮, 否则"加载更多"点一次就永久置灰了
-                    btn_load_more.isEnabled = true
-                    showError(it.message ?: "加载失败", keepContent = true)
+    private fun loadFloors(requestUrl: String, append: Boolean) {
+        if (requestUrl.isBlank() || requesting) return
+        requesting = true
+        if (!append) binding.pbLoading.visibility = View.VISIBLE
+        loadPage(
+            requestUrl,
+            { html, base -> parseForumThread(html, base) },
+            { post ->
+                requesting = false
+                binding.pbLoading.visibility = View.GONE
+                binding.tvError.visibility = View.GONE
+                if (post.floors.isEmpty()) {
+                    if (append) toast(EMPTY_TIP) else showError(EMPTY_TIP)
+                } else if (append) {
+                    loadedPage += 1
+                    floorAdapter.addData(post.floors)
+                } else {
+                    firstPage = post.page
+                    loadedPage = post.page
+                    showThread(post)
                 }
-            )
-    }
-
-    private fun showThread(post: ForumThreadPost) {
-        tv_error.visibility = View.GONE
-        pb_loading.visibility = View.GONE
-        tv_thread_title.text = post.title.ifBlank { "論壇熱帖" }
-        ll_floors.removeAllViews()
-        post.floors.forEach { floor ->
-            ll_floors.addView(buildFloorView(floor))
-        }
-        updateLoadMore(post)
-        nsv_content.visibility = View.VISIBLE
-    }
-
-    private fun addFloors(post: ForumThreadPost) {
-        tv_error.visibility = View.GONE
-        post.floors.forEach { floor ->
-            ll_floors.addView(buildFloorView(floor))
-        }
-        updateLoadMore(post)
-    }
-
-    private fun updateLoadMore(post: ForumThreadPost) {
-        nextUrl = post.nextUrl
-        btn_load_more.isEnabled = true
-        btn_load_more.visibility = if (post.hasNext) View.VISIBLE else View.GONE
-    }
-
-    private fun buildFloorView(floor: ForumFloor): View {
-        val view = layoutInflater.inflate(R.layout.layout_forum_floor, ll_floors, false)
-        view.findViewById<TextView>(R.id.tv_floor_no).text = floor.floorNo
-        view.findViewById<TextView>(R.id.tv_floor_author).text = floor.author
-        view.findViewById<TextView>(R.id.tv_floor_time).text = floor.time
-        val content = view.findViewById<LinearLayout>(R.id.ll_floor_content)
-        val width = resources.displayMetrics.widthPixels - dp2px(48f)
-        floor.segments.forEach { segment ->
-            when (segment) {
-                is ForumSegment.Text -> {
-                    val tv = TextView(this)
-                    tv.text = segment.content
-                    tv.textSize = 15f
-                    tv.setLineSpacing(0f, 1.2f)
-                    tv.setTextIsSelectable(true)
-                    val lp = LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                    lp.bottomMargin = dp2px(6f)
-                    content.addView(tv, lp)
-                }
-                is ForumSegment.Image -> {
-                    val iv = ImageView(this)
-                    iv.layoutParams = LinearLayout.LayoutParams(width, (width * 0.56f).toInt())
-                    iv.scaleType = ImageView.ScaleType.FIT_CENTER
-                    content.addView(iv)
-                    GlideApp.with(this)
-                        .load(segment.url.toGlideNoHostUrl)
-                        .into(iv)
-                }
+                totalPage = maxOf(totalPage, post.totalPage)
+                // 追加时也要推进游标, 否则「下一頁」会一直重刷同一页
+                nextUrl = post.nextUrl
+                renderPagination()
+            },
+            { message ->
+                requesting = false
+                binding.pbLoading.visibility = View.GONE
+                if (append) toast(message) else showError(message)
+                // 失败时游标不动, 分页条保持可点, 再按一次就是重试同一页
+                renderPagination()
             }
-        }
-        return view
+        )
     }
 
-    private fun showError(msg: String, keepContent: Boolean = false) {
-        pb_loading.visibility = View.GONE
-        if (keepContent && ll_floors.childCount > 0) {
-            toast(msg)
+    private fun renderPagination() {
+        val visible = totalPage > 1
+        binding.llPagination.visibility = if (visible) View.VISIBLE else View.GONE
+        binding.vPaginationDivider.visibility = if (visible) View.VISIBLE else View.GONE
+        if (!visible) {
+            supportActionBar?.subtitle = null
             return
         }
-        tv_error.visibility = View.VISIBLE
-        tv_error.text = msg
+        supportActionBar?.subtitle = getString(R.string.forum_page_total, totalPage)
+        binding.tvPageInfo.text = if (loadedPage <= firstPage) {
+            getString(R.string.forum_page_single, firstPage, totalPage)
+        } else {
+            getString(R.string.forum_page_range, firstPage, loadedPage, totalPage)
+        }
+
+        val atEnd = nextUrl.isBlank() || loadedPage >= totalPage
+        val dimmed = requesting || atEnd
+        val color = ContextCompat.getColor(
+            this,
+            if (dimmed) R.color.forum_time else R.color.forum_board_tag
+        )
+        binding.tvPageNext.apply {
+            text = getString(
+                when {
+                    requesting -> R.string.forum_page_loading
+                    atEnd -> R.string.forum_page_end
+                    else -> R.string.forum_page_next
+                }
+            )
+            isEnabled = !dimmed
+            setTextColor(color)
+        }
     }
 
-    private fun dp2px(dp: Float) = (dp * resources.displayMetrics.density).toInt()
+
+    private fun showThread(post: ForumThreadPost) {
+        supportActionBar?.title = post.title.ifBlank { getString(R.string.forum_thread_default) }
+        floorAdapter.setNewData(post.floors)
+        binding.rvFloors.visibility = View.VISIBLE
+    }
+
+    private fun showImage(floor: ForumFloor, index: Int) {
+        if (floor.images.isEmpty() || index < 0) return
+        WatchLargeImageActivity.startShow(this, floor.images, index, FORUM_SITE_HOST)
+    }
+
+    private fun showError(msg: String) {
+        binding.tvError.visibility = View.VISIBLE
+        binding.tvError.text = msg
+    }
 
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
     }
 
-    override fun onDestroy() {
-        disposed?.dispose()
-        super.onDestroy()
-    }
-
     companion object {
         private const val EXTRA_URL = "url"
+        private const val AUTO_AHEAD = 3
+        private const val EMPTY_TIP = "沒有解析到樓層內容（可能要登錄，或頁面結構變了）"
 
         fun open(context: Context, link: String) {
             context.startActivity(Intent(context, ForumThreadActivity::class.java).apply {

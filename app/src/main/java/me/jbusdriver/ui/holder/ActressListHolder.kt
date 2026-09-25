@@ -1,9 +1,9 @@
 package me.jbusdriver.ui.holder
 
 import android.content.Context
-import android.support.v7.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
-import kotlinx.android.synthetic.main.layout_detail_actress.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.inflate
 import me.jbusdriver.mvp.bean.ActressInfo
@@ -18,9 +18,10 @@ class ActressListHolder(context: Context) : BaseHolder(context) {
     val view by lazy {
         weakRef.get()?.let {
             it.inflate(R.layout.layout_detail_actress).apply {
-                rv_recycle_actress.layoutManager = LinearLayoutManager(it, LinearLayoutManager.HORIZONTAL, false)
-                actressAdapter.bindToRecyclerView(rv_recycle_actress)
-                rv_recycle_actress.isNestedScrollingEnabled = true
+                val rvRecycleActress = findViewById<RecyclerView>(R.id.rv_recycle_actress)
+                rvRecycleActress.layoutManager = LinearLayoutManager(it, LinearLayoutManager.HORIZONTAL, false)
+                actressAdapter.bindToRecyclerView(rvRecycleActress)
+                rvRecycleActress.isNestedScrollingEnabled = true
                 actressAdapter.setOnItemClickListener { _, _, position ->
                     actressAdapter.data.getOrNull(position)?.let { item ->
                         weakRef.get()?.let {
@@ -39,7 +40,7 @@ class ActressListHolder(context: Context) : BaseHolder(context) {
 
     fun init(actress: List<ActressInfo>) {
         //actress
-        if (actress.isEmpty()) view.tv_movie_actress_none_tip.visibility = View.VISIBLE
+        if (actress.isEmpty()) view.findViewById<View>(R.id.tv_movie_actress_none_tip).visibility = View.VISIBLE
         else {
             //load header
             actressAdapter.setNewData(actress)

@@ -1,7 +1,7 @@
 package me.jbusdriver.ui.adapter;
 
 import android.graphics.Rect;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 
 /**
@@ -15,12 +15,14 @@ public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
 
     private int spanCount;
     private int spacing;
+    private int verticalSpacing;
     private boolean includeEdge;
 
 
-    public GridSpacingItemDecoration(int spanCount, int spacing, boolean includeEdge) {
+    public GridSpacingItemDecoration(int spanCount, int spacing, int verticalSpacing, boolean includeEdge) {
         this.spanCount = spanCount;
         this.spacing = spacing;
+        this.verticalSpacing = verticalSpacing;
         this.includeEdge = includeEdge;
 
     }
@@ -37,14 +39,14 @@ public class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
                 outRect.right = (column + 1) * spacing / spanCount; // (column + 1) * ((1f / spanCount) * spacing)
 
                 if (position < spanCount) { // top edge
-                    outRect.top = spacing;
+                    outRect.top = verticalSpacing;
                 }
-                outRect.bottom = spacing; // item bottom
+                outRect.bottom = verticalSpacing; // item bottom
             } else {
                 outRect.left = column * spacing / spanCount; // column * ((1f / spanCount) * spacing)
                 outRect.right = spacing - (column + 1) * spacing / spanCount; // spacing - (column + 1) * ((1f /    spanCount) * spacing)
                 if (position >= spanCount) {
-                    outRect.top = spacing; // item top
+                    outRect.top = verticalSpacing; // item top
                 }
             }
         } else {

@@ -20,7 +20,8 @@ class LoadCollectService : IntentService("LoadCollectService") {
     override fun onHandleIntent(intent: Intent?) {
         if (intent != null) {
             when (intent.action) {
-                ACTION_COLLECT_LOAD -> handleLoadBakUp(File(intent.getStringExtra(ACTION_COLLECT_LOAD)))
+                ACTION_COLLECT_LOAD -> intent.getStringExtra(ACTION_COLLECT_LOAD)
+                    ?.let { handleLoadBakUp(File(it)) }
                 else -> Unit
             }
 

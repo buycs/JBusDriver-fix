@@ -1,11 +1,11 @@
 package me.jbusdriver.ui.holder
 
 import android.content.Context
-import android.support.v7.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
-import kotlinx.android.synthetic.main.layout_detail_forum_posts.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.GlideApp
 import me.jbusdriver.base.inflate
@@ -21,10 +21,11 @@ class ForumPostsHolder(context: Context) : BaseHolder(context) {
     val view by lazy {
         weakRef.get()?.let {
             it.inflate(R.layout.layout_detail_forum_posts).apply {
-                rv_recycle_forum_posts.layoutManager =
+                val rvRecycleForumPosts = findViewById<RecyclerView>(R.id.rv_recycle_forum_posts)
+                rvRecycleForumPosts.layoutManager =
                     LinearLayoutManager(it, LinearLayoutManager.HORIZONTAL, false)
-                forumAdapter.bindToRecyclerView(rv_recycle_forum_posts)
-                rv_recycle_forum_posts.isNestedScrollingEnabled = true
+                forumAdapter.bindToRecyclerView(rvRecycleForumPosts)
+                rvRecycleForumPosts.isNestedScrollingEnabled = true
                 forumAdapter.setOnItemClickListener { _, v, position ->
                     forumAdapter.data.getOrNull(position)?.let { post ->
                         ForumThreadActivity.open(v.context, post.link)
@@ -46,7 +47,7 @@ class ForumPostsHolder(context: Context) : BaseHolder(context) {
     }
 
     fun init(forumPosts: List<ForumPost>) {
-        if (forumPosts.isEmpty()) view.tv_movie_forum_none_tip.visibility = View.VISIBLE
+        if (forumPosts.isEmpty()) view.findViewById<View>(R.id.tv_movie_forum_none_tip).visibility = View.VISIBLE
         else forumAdapter.setNewData(forumPosts)
     }
 }

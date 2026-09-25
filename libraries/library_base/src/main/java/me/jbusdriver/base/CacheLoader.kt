@@ -2,7 +2,7 @@ package me.jbusdriver.base
 
 import android.app.Activity
 import android.app.ActivityManager
-import android.support.v4.util.LruCache
+import android.util.LruCache
 import com.google.gson.stream.JsonReader
 import io.reactivex.Flowable
 import io.reactivex.schedulers.Schedulers
@@ -94,18 +94,6 @@ object CacheLoader {
     }
 
     fun readDiskAsString(key: String): String? = unwrapLegacy(acache.getAsString(key))
-
-    /** 兼容旧格式的 map 型磁盘缓存(如站点 url 列表) */
-    fun readCacheMap(key: String): Map<String, String>? =
-        readDiskAsString(key)?.let { runCatching { GSON.fromJson<Map<String, String>>(it) } }.getOrNull()
-
-    /** 只做磁盘读取的 Flowable, 解析失败时发 onError 而不是给个空 map 骗过 concat */
-    fun justDiskMap(key: String): Flowable<Map<String, String>> = Flowable.defer {
-        val text = readDiskAsString(key) ?: return@defer Flowable.empty<Map<String, String>>()
-        Flowable.fromCallable {
-            GSON.fromJson<Map<String, String>>(text) ?: error("empty cache for $key")
-        }
-    }
 
     /*============================cache to flowable====================================*/
     fun fromLruAsync(key: String): Flowable<String> =

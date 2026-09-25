@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tv_forum_text"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:lineSpacingMultiplier="1.15"
+    android:textColor="@color/forum_body"
+    android:textColorLink="#1565C0"
+    android:textIsSelectable="true"
+    android:textSize="15sp" />

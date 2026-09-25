@@ -48,8 +48,9 @@ object NetClient {
         Interceptor { chain ->
             val request = chain.request()
             val response = chain.proceed(request)
+            val body = response.body ?: return@Interceptor response
             return@Interceptor response.newBuilder()
-                .body(ProgressResponseBody(request.url().toString(), response.body(), GlobalProgressListener))
+                .body(ProgressResponseBody(request.url.toString(), body, GlobalProgressListener))
                 .build()
         }
     }
@@ -129,10 +130,10 @@ object NetClient {
                 private val cookieStore = ConcurrentHashMap<String, List<Cookie>>()
 
                 override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-                    cookieStore[url.host()] = cookies
+                    cookieStore[url.host] = cookies
                 }
 
-                override fun loadForRequest(url: HttpUrl) = cookieStore[url.host()] ?: emptyList()
+                override fun loadForRequest(url: HttpUrl) = cookieStore[url.host] ?: emptyList()
             })
         if (BuildConfig.DEBUG) {
             client.addInterceptor(LoggerInterceptor("OK_HTTP"))

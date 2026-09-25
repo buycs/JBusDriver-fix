@@ -1,10 +1,9 @@
 package me.jbusdriver.ui.fragment
 
 import android.os.Bundle
-import android.support.v4.util.ArrayMap
-import android.support.v7.widget.OrientationHelper
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.StaggeredGridLayoutManager
+import androidx.recyclerview.widget.OrientationHelper
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -15,7 +14,6 @@ import me.jbusdriver.base.*
 import me.jbusdriver.base.common.C
 import me.jbusdriver.common.bean.ILink
 import me.jbusdriver.common.isEndWithXyzHost
-import me.jbusdriver.http.JAVBusService
 import me.jbusdriver.mvp.bean.*
 import me.jbusdriver.mvp.model.CollectModel
 import me.jbusdriver.mvp.presenter.ActressLinkPresenterImpl
@@ -102,18 +100,17 @@ class ActressListFragment : LinkableListFragment<ActressInfo>() {
 
     private var collectMenu: MenuItem? = null
     private var removeCollectMenu: MenuItem? = null
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu?.findItem(R.id.action_show_all)?.isVisible = false
-        menu?.findItem(R.id.action_switch_layout)?.isVisible = false
+        menu.findItem(R.id.action_show_all)?.isVisible = false
         if (isSearch) {
             val isCollect = CollectModel.has((link as SearchLink).convertDBItem())
-            collectMenu = menu?.add(Menu.NONE, R.id.action_add_movie_collect, 10, "收藏")?.apply {
+            collectMenu = menu.add(Menu.NONE, R.id.action_add_movie_collect, 10, "收藏")?.apply {
                 setIcon(R.drawable.ic_star_border_white_24dp)
                 setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 isVisible = !isCollect
             }
-            removeCollectMenu = menu?.add(Menu.NONE, R.id.action_remove_movie_collect, 10, "取消收藏")?.apply {
+            removeCollectMenu = menu.add(Menu.NONE, R.id.action_remove_movie_collect, 10, "取消收藏")?.apply {
                 setIcon(R.drawable.ic_star_white_24dp)
                 setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 isVisible = isCollect
@@ -169,16 +166,13 @@ class ActressListFragment : LinkableListFragment<ActressInfo>() {
         }
 
         fun newInstance(type: DataSourceType) = ActressListFragment().apply {
-            val urls =
-                CacheLoader.readCacheMap(C.Cache.BUS_URLS) ?: arrayMapof<String, String>()
-            val url = urls[type.key] ?: JAVBusService.defaultFastUrl+"/actresses"
             arguments = Bundle().apply {
                 /*
                 *
                 * object : ILink {
                     override val link: String = url
                 }*/
-                putSerializable(C.BundleKey.Key_1, PageLink(1, type.key, url))
+                putSerializable(C.BundleKey.Key_1, PageLink(1, type.key, type.url))
                 putSerializable(ACTRESS_LIST_DATA_TYPE, type)
             }
         }

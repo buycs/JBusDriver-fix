@@ -1,16 +1,18 @@
 package me.jbusdriver.component.magnet.ui.activity
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import com.billy.cc.core.component.CC
-import com.billy.cc.core.component.CCUtil
-import kotlinx.android.synthetic.main.comp_magnet_activity_magnet_list.*
-import me.jbusdriver.base.JBusManager.context
 import me.jbusdriver.base.common.BaseActivity
 import me.jbusdriver.base.common.C
 import me.jbusdriver.component.magnet.R
-import me.jbusdriver.component.magnet.ui.fragment.MagnetPagersFragment
+import me.jbusdriver.component.magnet.databinding.CompMagnetActivityMagnetListBinding
+import me.jbusdriver.component.magnet.ui.fragment.JAVBusOfficialLoaderKey
+import me.jbusdriver.component.magnet.ui.fragment.MagnetListFragment
 
 class MagnetPagerListActivity : BaseActivity() {
+
+    private lateinit var binding: CompMagnetActivityMagnetListBinding
 
     private val keyword by lazy {
         intent.getStringExtra(C.BundleKey.Key_1) ?: error("must set keyword")
@@ -19,18 +21,16 @@ class MagnetPagerListActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.comp_magnet_activity_magnet_list)
-        setSupportActionBar(comp_magnet_toolbar)
+        binding = CompMagnetActivityMagnetListBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        fitSystemBars(binding.compMagnetToolbar, binding.root)
+        setSupportActionBar(binding.compMagnetToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         setTitle(keyword)
-        //go to SearchResultPagesFragment
+        // 只保留站方官方磁力源这一个结果页: 第三方源要在设置里勾选才会出现, 且多数已失效
         supportFragmentManager.beginTransaction()
-            .replace(R.id.comp_magnet_fl_magnet_list, MagnetPagersFragment().apply {
-                arguments = Bundle().apply {
-                    putString(C.BundleKey.Key_1, keyword)
-                    putString(C.BundleKey.Key_2, link)
-                }
-            }).commit()
+            .replace(R.id.comp_magnet_fl_magnet_list, MagnetListFragment.newInstance(link, JAVBusOfficialLoaderKey))
+            .commit()
 
     }
 
@@ -39,15 +39,11 @@ class MagnetPagerListActivity : BaseActivity() {
     }
 
     companion object {
-        fun start(cc: CC, keyword: String, link: String) {
-            context.startActivity(
-                CCUtil.createNavigateIntent(
-                    cc,
-                    MagnetPagerListActivity::class.java
-                ).apply {
-                    putExtra(C.BundleKey.Key_1, keyword)
-                    putExtra(C.BundleKey.Key_2, link)
-                })
+        fun start(context: Context, keyword: String, link: String) {
+            context.startActivity(Intent(context, MagnetPagerListActivity::class.java).apply {
+                putExtra(C.BundleKey.Key_1, keyword)
+                putExtra(C.BundleKey.Key_2, link)
+            })
         }
     }
 }

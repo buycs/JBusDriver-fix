@@ -1,14 +1,15 @@
 package me.jbusdriver.ui.fragment
 
 import android.graphics.Bitmap
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.graphics.Palette
-import android.support.v7.widget.OrientationHelper
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.StaggeredGridLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.palette.graphics.Palette
+import androidx.recyclerview.widget.OrientationHelper
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuInflater
+import android.widget.TextView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.bumptech.glide.request.transition.Transition
@@ -16,9 +17,6 @@ import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
 import io.reactivex.Flowable
 import io.reactivex.rxkotlin.addTo
-import kotlinx.android.synthetic.main.layout_menu_op_head.view.*
-import kotlinx.android.synthetic.main.layout_recycle.*
-import kotlinx.android.synthetic.main.layout_swipe_recycle.*
 import me.jbusdriver.R
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.AppBaseRecycleFragment
@@ -45,8 +43,8 @@ class ActressCollectFragment :
     ActressCollectContract.ActressCollectView {
 
 
-    override val swipeView: SwipeRefreshLayout? by lazy { sr_refresh }
-    override val recycleView: RecyclerView by lazy { rv_recycle }
+    override val swipeView: SwipeRefreshLayout? by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.sr_refresh) }
+    override val recycleView: RecyclerView by lazy { view!!.findViewById<RecyclerView>(R.id.rv_recycle) }
     override val layoutManager: RecyclerView.LayoutManager by lazy {
         StaggeredGridLayoutManager(viewContext.spanCount, OrientationHelper.VERTICAL)
     }
@@ -114,7 +112,7 @@ class ActressCollectFragment :
                 data.linkBean?.let {
                     MovieListActivity.start(viewContext, it)
                 } ?: apply {
-                    view.tv_nav_menu_name.text = " ${if (data.isExpanded) "👇" else "👆"} " + data.category.name
+                    view.findViewById<TextView>(R.id.tv_nav_menu_name).text = " ${if (data.isExpanded) "👇" else "👆"} " + data.category.name
                     if (data.isExpanded) collapse(adapter.getHeaderLayoutCount() + position) else expand(adapter.getHeaderLayoutCount() + position)
                     (layoutManager as StaggeredGridLayoutManager).invalidateSpanAssignments()
                 }
@@ -174,9 +172,9 @@ class ActressCollectFragment :
 
     private val holder by lazy { CollectDirEditHolder(viewContext, ActressCategory) }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu?.findItem(R.id.action_collect_dir_edit)?.setOnMenuItemClickListener {
+        menu.findItem(R.id.action_collect_dir_edit)?.setOnMenuItemClickListener {
 
             holder.showDialogWithData(
                 mBasePresenter?.collectGroupMap?.keys?.toList()

@@ -2,8 +2,8 @@ package me.jbusdriver.ui.holder
 
 import android.content.Context
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 import com.xiaofeng.flowlayoutmanager.FlowLayoutManager
-import kotlinx.android.synthetic.main.layout_detail_genres.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.inflate
 import me.jbusdriver.mvp.bean.Genre
@@ -16,9 +16,10 @@ class GenresHolder(context: Context) : BaseHolder(context) {
     val view by lazy {
         weakRef.get()?.let {
             it.inflate(R.layout.layout_detail_genres).apply {
-                rv_recycle_genres.layoutManager = FlowLayoutManager().apply { isAutoMeasureEnabled = true }
-                genreAdapter.bindToRecyclerView(rv_recycle_genres)
-                rv_recycle_genres.isNestedScrollingEnabled = true
+                val rvRecycleGenres = findViewById<RecyclerView>(R.id.rv_recycle_genres)
+                rvRecycleGenres.layoutManager = FlowLayoutManager().apply { isAutoMeasureEnabled = true }
+                genreAdapter.bindToRecyclerView(rvRecycleGenres)
+                rvRecycleGenres.isNestedScrollingEnabled = true
             }
         } ?: error("context ref is finish")
     }
@@ -27,7 +28,7 @@ class GenresHolder(context: Context) : BaseHolder(context) {
 
     fun init(genres: List<Genre>) {
         //actress
-        if (genres.isEmpty()) view.tv_movie_genres_none_tip.visibility = View.VISIBLE
+        if (genres.isEmpty()) view.findViewById<View>(R.id.tv_movie_genres_none_tip).visibility = View.VISIBLE
         else {
             //load header
             genreAdapter.setNewData(genres)

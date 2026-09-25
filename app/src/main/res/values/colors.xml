@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-
+    <!-- 論壇只读页面 -->
+    <color name="forum_floor_no">#E53935</color>
+    <color name="forum_author">#3F51B5</color>
+    <color name="forum_time">#999999</color>
+    <color name="forum_body">#212121</color>
+    <color name="forum_board_tag">#2E7D32</color>
+    <color name="forum_divider">#E0E0E0</color>
+    <color name="forum_quote_bg">#F5F5F5</color>
+    <color name="forum_quote_bar">#BDBDBD</color>
 </resources>

@@ -10,6 +10,7 @@ import me.jbusdriver.base.mvp.model.AbstractBaseModel
 import me.jbusdriver.base.mvp.model.BaseModel
 import me.jbusdriver.base.mvp.presenter.BasePresenterImpl
 import me.jbusdriver.common.isEndWithXyzHost
+import me.jbusdriver.http.BUS_SITE
 import me.jbusdriver.http.JAVBusService
 import me.jbusdriver.mvp.MovieDetailContract
 import me.jbusdriver.mvp.bean.Movie
@@ -41,7 +42,7 @@ class MovieDetailPresenterImpl(private val fromHistory: Boolean) :
                         }
                     }
                     val res = if (cached != null && mView?.movie?.link?.urlHost?.isEndWithXyzHost == false) {
-                        val new = cached.checkUrl(JAVBusService.defaultFastUrl)
+                        val new = cached.checkUrl(BUS_SITE)
                         if (cached != new) CacheLoader.cacheDisk(t.urlPath to new, C.Cache.DAY * 7)
                         new
                     } else cached

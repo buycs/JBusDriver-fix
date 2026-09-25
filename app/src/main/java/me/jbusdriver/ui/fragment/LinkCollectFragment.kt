@@ -1,19 +1,16 @@
 package me.jbusdriver.ui.fragment
 
 import android.graphics.Paint
-import android.support.v4.content.res.ResourcesCompat
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.core.content.res.ResourcesCompat
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import android.view.Menu
 import android.view.MenuInflater
 import android.widget.TextView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
-import kotlinx.android.synthetic.main.layout_menu_op_head.view.*
-import kotlinx.android.synthetic.main.layout_recycle.*
-import kotlinx.android.synthetic.main.layout_swipe_recycle.*
 import me.jbusdriver.R
 import me.jbusdriver.base.common.AppBaseRecycleFragment
 import me.jbusdriver.base.dpToPx
@@ -39,8 +36,8 @@ class LinkCollectFragment :
     AppBaseRecycleFragment<LinkCollectContract.LinkCollectPresenter, LinkCollectContract.LinkCollectView, CollectLinkWrapper<ILink>>(),
     LinkCollectContract.LinkCollectView {
 
-    override val swipeView: SwipeRefreshLayout? by lazy { sr_refresh }
-    override val recycleView: RecyclerView by lazy { rv_recycle }
+    override val swipeView: SwipeRefreshLayout? by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.sr_refresh) }
+    override val recycleView: RecyclerView by lazy { view!!.findViewById<RecyclerView>(R.id.rv_recycle) }
     override val layoutManager: RecyclerView.LayoutManager by lazy { LinearLayoutManager(viewContext) }
     override val adapter: BaseQuickAdapter<CollectLinkWrapper<ILink>, in BaseViewHolder> by lazy {
         object : BaseQuickAdapter<CollectLinkWrapper<ILink>, BaseViewHolder>(null) {
@@ -80,7 +77,7 @@ class LinkCollectFragment :
                     } else MovieListActivity.start(viewContext, it)
 
                 } ?: apply {
-                    view.tv_nav_menu_name.text = " ${if (data.isExpanded) "👇" else "👆"} " + data.category.name
+                    view.findViewById<TextView>(R.id.tv_nav_menu_name).text = " ${if (data.isExpanded) "👇" else "👆"} " + data.category.name
                     if (data.isExpanded) collapse(adapter.getHeaderLayoutCount() + position) else expand(adapter.getHeaderLayoutCount() + position)
                 }
             }
@@ -137,9 +134,9 @@ class LinkCollectFragment :
     override fun createPresenter() = LinkCollectPresenterImpl()
     private val holder by lazy { CollectDirEditHolder(viewContext, LinkCategory) }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        menu?.findItem(R.id.action_collect_dir_edit)?.setOnMenuItemClickListener {
+        menu.findItem(R.id.action_collect_dir_edit)?.setOnMenuItemClickListener {
 
             holder.showDialogWithData(
                 mBasePresenter?.collectGroupMap?.keys?.toList()

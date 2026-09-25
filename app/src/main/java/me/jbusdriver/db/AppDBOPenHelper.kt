@@ -1,7 +1,7 @@
 package me.jbusdriver.db
 
-import android.arch.persistence.db.SupportSQLiteDatabase
-import android.arch.persistence.db.SupportSQLiteOpenHelper
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.SupportSQLiteOpenHelper
 import android.database.sqlite.SQLiteDatabase
 import me.jbusdriver.base.KLog
 import me.jbusdriver.common.bean.db.AllFirstParentDBCategoryGroup
@@ -64,12 +64,12 @@ private const val JBUS_DB_VERSION = 1
 
 class JBusDBOpenCallBack : SupportSQLiteOpenHelper.Callback(JBUS_DB_VERSION) {
 
-    override fun onCreate(db: SupportSQLiteDatabase?) {
+    override fun onCreate(db: SupportSQLiteDatabase) {
         KLog.d("JBusDBOpenCallBack onCreate")
-        db?.execSQL(CREATE_HISTORY_SQL)
+        db.execSQL(CREATE_HISTORY_SQL)
     }
 
-    override fun onUpgrade(db: SupportSQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+    override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) {
         KLog.d("JBusDBOpenCallBack onUpgrade $oldVersion $newVersion")
     }
     /*for (i in oldVersion..newVersion) {
@@ -91,13 +91,13 @@ private const val COLLECT_DB_VERSION = 1
 
 class CollectDBCallBack : SupportSQLiteOpenHelper.Callback(COLLECT_DB_VERSION) {
 
-    override fun onCreate(db: SupportSQLiteDatabase?) {
+    override fun onCreate(db: SupportSQLiteDatabase) {
         KLog.d("JBusDBOpenCallBack onCreate")
-        db?.execSQL(CREATE_LINK_ITEM_SQL)
-        db?.execSQL(CREATE_COLLECT_CATEGORY_SQL)
+        db.execSQL(CREATE_LINK_ITEM_SQL)
+        db.execSQL(CREATE_COLLECT_CATEGORY_SQL)
         AllFirstParentDBCategoryGroup.forEach {
-            db?.insert(CategoryTable.TABLE_NAME, SQLiteDatabase.CONFLICT_NONE, it.value.cv())
-            db?.update(
+            db.insert(CategoryTable.TABLE_NAME, SQLiteDatabase.CONFLICT_NONE, it.value.cv())
+            db.update(
                 CategoryTable.TABLE_NAME,
                 SQLiteDatabase.CONFLICT_NONE,
                 it.value.cv(),
@@ -117,7 +117,7 @@ class CollectDBCallBack : SupportSQLiteOpenHelper.Callback(COLLECT_DB_VERSION) {
     }
 
 
-    override fun onUpgrade(db: SupportSQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+    override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) {
         KLog.d("JBusDBOpenCallBack onUpgrade $oldVersion $newVersion")
     }
 

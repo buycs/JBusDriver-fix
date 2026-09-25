@@ -33,33 +33,6 @@ data class MovieDetail(
     //  val magnets: MutableList<Magnet> = mutableListOf() //磁力链接
 )
 
-data class ForumPost(val name: String, val image: String, override val link: String) : ILink {
-    @Transient
-    override var categoryId: Int = LinkCategory.id ?: 10
-
-    val tid: String
-        get() = Regex("tid=(\\d+)").find(link)?.groupValues?.getOrNull(1).orEmpty()
-}
-
-data class ForumThreadPost(
-    val title: String,
-    val floors: List<ForumFloor>,
-    val hasNext: Boolean = false,
-    val nextUrl: String = ""
-)
-
-data class ForumFloor(
-    val floorNo: String,      //楼层号: 楼主/1#
-    val author: String,       //作者
-    val time: String,         //发表时间
-    val segments: List<ForumSegment> //有序内容段
-)
-
-sealed class ForumSegment {
-    data class Text(val content: String) : ForumSegment()
-    data class Image(val url: String) : ForumSegment()
-}
-
 interface IAttr : Serializable
 
 

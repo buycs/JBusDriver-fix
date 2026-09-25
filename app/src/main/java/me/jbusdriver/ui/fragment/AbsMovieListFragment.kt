@@ -1,9 +1,7 @@
 package me.jbusdriver.ui.fragment
 
 import android.graphics.drawable.GradientDrawable
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.OrientationHelper
-import android.support.v7.widget.StaggeredGridLayoutManager
+import androidx.recyclerview.widget.OrientationHelper
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
@@ -95,20 +93,12 @@ abstract class AbsMovieListFragment : LinkableListFragment<Movie>() {
             init {
 
                 multiTypeDelegate = object : MultiTypeDelegate<Movie>() {
-                    override fun getItemType(t: Movie): Int {
-                        return when {
-                            t.isInValid -> -1
-                            recyclerView?.layoutManager is LinearLayoutManager -> OrientationHelper.VERTICAL
-                            recyclerView?.layoutManager is StaggeredGridLayoutManager -> OrientationHelper.HORIZONTAL
-                            else -> 1
-                        }
-                    }
+                    override fun getItemType(t: Movie): Int = if (t.isInValid) -1 else OrientationHelper.VERTICAL
                 }
 
                 multiTypeDelegate
                     .registerItemType(-1, R.layout.layout_pager_section_item)
                     .registerItemType(OrientationHelper.VERTICAL, R.layout.layout_page_line_movie_item)
-                    .registerItemType(OrientationHelper.HORIZONTAL, R.layout.layout_page_line_movie_item_hor)
 
             }
 
@@ -138,7 +128,7 @@ abstract class AbsMovieListFragment : LinkableListFragment<Movie>() {
                             }
                         }
                     }
-                    OrientationHelper.HORIZONTAL, OrientationHelper.VERTICAL -> {
+                    OrientationHelper.VERTICAL -> {
 
                         when (pageMode) {
                             AppConfiguration.PageMode.Page -> {
@@ -166,28 +156,15 @@ abstract class AbsMovieListFragment : LinkableListFragment<Movie>() {
                             item.tags?.mapIndexed { index, tag ->
                                 (viewContext.inflate(R.layout.tv_movie_tag) as TextView).let {
                                     it.text = tag
-                                    if (holder.itemViewType == OrientationHelper.HORIZONTAL) {
-                                        it.textSize = 11f
-                                    }
                                     it.setPadding(dp8, 0, dp8, 0)
                                     it.background = GradientDrawable().apply {
                                         setColor(
                                             backColors.getOrNull(index % 3)
                                                 ?: backColors.first()
                                         )
-                                        cornerRadius = if (holder.itemViewType == OrientationHelper.HORIZONTAL) {
-                                            dp8 * 1.5f
-                                        } else {
-                                            dp8 * 2f
-                                        }
+                                        cornerRadius = dp8 * 2f
                                     }
-                                    it.layoutParams = genLp().apply {
-                                        if (holder.itemViewType == OrientationHelper.VERTICAL) {
-                                            leftMargin = dp8
-                                        } else {
-                                            rightMargin = dp8
-                                        }
-                                    }
+                                    it.layoutParams = genLp().apply { leftMargin = dp8 }
                                     this.addView(it)
                                 }
                             }

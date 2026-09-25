@@ -1,7 +1,7 @@
 package me.jbusdriver.base
 
 import android.net.Uri
-import android.support.v4.util.LruCache
+import android.util.LruCache
 import android.widget.Toast
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializer

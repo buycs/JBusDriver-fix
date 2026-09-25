@@ -6,4 +6,18 @@
 
     <string name="action_settings">Settings</string>
     <string name="title_activity_movie_detail">MovieDetailActivity</string>
+
+    <!-- 論壇只读页面 -->
+    <string name="forum_arrow">›</string>
+    <string name="forum_board_title">論壇</string>
+    <string name="forum_hot_tab_hot">熱門主題</string>
+    <string name="forum_load_failed">加載失敗</string>
+    <string name="forum_empty">沒有內容</string>
+    <string name="forum_thread_default">論壇熱帖</string>
+    <string name="forum_page_total">共 %1$d 頁</string>
+    <string name="forum_page_single">第 %1$d 頁 / 共 %2$d 頁</string>
+    <string name="forum_page_range">第 %1$d–%2$d 頁 / 共 %3$d 頁</string>
+    <string name="forum_page_next">下一頁 ›</string>
+    <string name="forum_page_loading">加載中…</string>
+    <string name="forum_page_end">已加載全部</string>
 </resources>

@@ -6,12 +6,12 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.request.target.DrawableImageViewTarget
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
-import kotlinx.android.synthetic.main.layout_actress_attr.view.*
-import kotlinx.android.synthetic.main.layout_load_all.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.C
@@ -23,6 +23,7 @@ import me.jbusdriver.mvp.model.CollectModel
 import me.jbusdriver.mvp.presenter.LinkAbsPresenterImpl
 import me.jbusdriver.mvp.presenter.MovieLinkPresenterImpl
 import me.jbusdriver.ui.activity.SearchResultActivity
+import me.jbusdriver.ui.widget.FlowLayout
 
 
 /**
@@ -41,18 +42,18 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
 
     private var collectMenu: MenuItem? = null
     private var removeCollectMenu: MenuItem? = null
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         val isCollect by lazy {
             CollectModel.has(link.convertDBItem())
         }
         if (!isHistory || link !is PageLink) { //历史记录隐藏
-            collectMenu = menu?.add(Menu.NONE, R.id.action_add_movie_collect, 10, "收藏")?.apply {
+            collectMenu = menu.add(Menu.NONE, R.id.action_add_movie_collect, 10, "收藏")?.apply {
                 setIcon(R.drawable.ic_star_border_white_24dp)
                 setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 isVisible = !isCollect
             }
-            removeCollectMenu = menu?.add(Menu.NONE, R.id.action_remove_movie_collect, 10, "取消收藏")?.apply {
+            removeCollectMenu = menu.add(Menu.NONE, R.id.action_remove_movie_collect, 10, "取消收藏")?.apply {
                 setIcon(R.drawable.ic_star_white_24dp)
                 setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
                 isVisible = isCollect
@@ -145,16 +146,28 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
             this.viewContext.inflate(R.layout.layout_actress_attr).apply {
                 //img
                 GlideApp.with(this@LinkedMovieListFragment).load(data.imageUrl.toGlideNoHostUrl)
-                    .into(DrawableImageViewTarget(this.iv_actress_avatar))
+                    .into(DrawableImageViewTarget(this.findViewById<ImageView>(R.id.iv_actress_avatar)))
                 //title
-                this.ll_attr_container.addView(generateTextView().apply {
-                    textSize = 16f
-                    setTextColor(R.color.primaryText.toColorInt())
-                    text = data.title
-                })
+                this.findViewById<TextView>(R.id.tv_attr_title).text = data.title
 
+                // 胶囊交给 FlowLayout 排队: 一行放得下几个放几个, 满了换行
+                val flow = this.findViewById<FlowLayout>(R.id.fl_actress_info)
                 data.info.forEach {
-                    this.ll_attr_container.addView(generateTextView().apply { text = it })
+                    flow.addView(generateTextView().apply {
+                        text = it
+                        setTextColor(R.color.primaryText.toColorInt())
+                        setBackgroundResource(R.drawable.bg_actress_info_capsule)
+                        val horizontal = viewContext.dpToPx(12f)
+                        val vertical = viewContext.dpToPx(5f)
+                        setPadding(horizontal, vertical, horizontal, vertical)
+                        layoutParams = ViewGroup.MarginLayoutParams(
+                            ViewGroup.MarginLayoutParams.WRAP_CONTENT,
+                            ViewGroup.MarginLayoutParams.WRAP_CONTENT
+                        ).apply {
+                            rightMargin = viewContext.dpToPx(6f)
+                            topMargin = viewContext.dpToPx(6f)
+                        }
+                    })
                 }
 
 
@@ -175,13 +188,14 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
         return data.split("：").let { txts ->
             if (txts.size == 2) {
                 this.viewContext.inflate(R.layout.layout_load_all).apply {
-                    tv_info_title.text = txts[0]
+                    findViewById<TextView>(R.id.tv_info_title).text = txts[0]
                     val spans = txts[1].split("，")
                     require(spans.size == 2)
-                    tv_change_a.text = spans[0]
-                    tv_change_b.text = spans[1]
-                    tv_change_b.paintFlags = tv_change_b.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-                    tv_change_b.setOnClickListener {
+                    findViewById<TextView>(R.id.tv_change_a).text = spans[0]
+                    val tvChangeB = findViewById<TextView>(R.id.tv_change_b)
+                    tvChangeB.text = spans[1]
+                    tvChangeB.paintFlags = tvChangeB.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+                    tvChangeB.setOnClickListener {
                         val showAll = tempSaveBundle.getBoolean(MENU_SHOW_ALL)
                         mBasePresenter?.setAll(!showAll)
                         mBasePresenter?.loadData4Page(1)

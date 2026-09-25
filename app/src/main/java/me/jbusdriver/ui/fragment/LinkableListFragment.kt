@@ -1,20 +1,19 @@
 package me.jbusdriver.ui.fragment
 
 import android.os.Bundle
-import android.support.v4.view.MenuItemCompat
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.*
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuItemCompat
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.recyclerview.widget.*
 import android.text.InputType
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import com.afollestad.materialdialogs.MaterialDialog
+import com.xw.repo.BubbleSeekBar
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
-import kotlinx.android.synthetic.main.layout_recycle.*
-import kotlinx.android.synthetic.main.layout_seek_page.view.*
-import kotlinx.android.synthetic.main.layout_swipe_recycle.*
 import me.jbusdriver.R
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.AppBaseRecycleFragment
@@ -30,26 +29,9 @@ abstract class LinkableListFragment<T> :
 
     override val layoutId: Int = R.layout.layout_swipe_recycle
 
-    override val swipeView: SwipeRefreshLayout? by lazy { sr_refresh }
-    override val recycleView: RecyclerView  by lazy { rv_recycle }
-    override val layoutManager: RecyclerView.LayoutManager
-        get() = when (currentLayoutType) {
-            OrientationHelper.VERTICAL -> layoutManagers.getOrPut(OrientationHelper.VERTICAL) {
-                LinearLayoutManager(
-                    viewContext
-                )
-            }
-            OrientationHelper.HORIZONTAL -> layoutManagers.getOrPut(OrientationHelper.HORIZONTAL) {
-                StaggeredGridLayoutManager(2, OrientationHelper.VERTICAL).apply {
-                }
-            }
-            else -> LinearLayoutManager(viewContext)
-        }
-
-    private val layoutManagers = hashMapOf<Int, RecyclerView.LayoutManager>()
-
-    private var currentLayoutType = getSp("layout_type")?.toIntOrNull()
-        ?: OrientationHelper.VERTICAL
+    override val swipeView: SwipeRefreshLayout? by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.sr_refresh) }
+    override val recycleView: RecyclerView  by lazy { view!!.findViewById<RecyclerView>(R.id.rv_recycle) }
+    override val layoutManager: RecyclerView.LayoutManager by lazy { LinearLayoutManager(viewContext) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,29 +56,29 @@ abstract class LinkableListFragment<T> :
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        inflater?.inflate(R.menu.main, menu)
-        menu?.getItem(0)?.let {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.main, menu)
+        menu.getItem(0)?.let {
             val mSearchView = MenuItemCompat.getActionView(it) as SearchView
 
             mSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String): Boolean {
+                override fun onQueryTextSubmit(query: String?): Boolean {
                     if (TextUtils.isEmpty(query)) toast("关键字不能为空!")
-                    gotoSearchResult(query)
+                    gotoSearchResult(query.orEmpty())
 
                     return true
                 }
 
-                override fun onQueryTextChange(newText: String) = false
+                override fun onQueryTextChange(newText: String?) = false
             })
         }
 
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu?) {
+    override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu) //menu before show
-        menu?.findItem(R.id.action_show_all)?.isChecked = tempSaveBundle.getBoolean(MENU_SHOW_ALL, false)
-        menu?.findItem(R.id.action_jump)?.let {
+        menu.findItem(R.id.action_show_all)?.isChecked = tempSaveBundle.getBoolean(MENU_SHOW_ALL, false)
+        menu.findItem(R.id.action_jump)?.let {
             it.isVisible = AppConfiguration.pageMode == AppConfiguration.PageMode.Page
         }
     }
@@ -123,30 +105,6 @@ abstract class LinkableListFragment<T> :
                     showPageDialog(it)
                 }
             }
-
-            R.id.action_switch_layout -> {
-                val pos = when (val lm = recycleView.layoutManager) {
-                    is LinearLayoutManager -> lm.findFirstVisibleItemPosition()
-                    is StaggeredGridLayoutManager -> lm.findFirstCompletelyVisibleItemPositions(
-                        intArrayOf(
-                            0,
-                            0
-                        )
-                    ).firstOrNull()
-                        ?: 0
-                    else -> 0
-                }
-                currentLayoutType =
-                        if (currentLayoutType == OrientationHelper.HORIZONTAL) OrientationHelper.VERTICAL else OrientationHelper.HORIZONTAL
-                //save config
-                saveSp("layout_type", currentLayoutType.toString())
-                recycleView.layoutManager = layoutManager
-                recycleView.adapter = adapter
-                recycleView.layoutManager?.scrollToPosition(pos)
-            }
-            /* R.id.action_recommend -> {
-                 HotRecommendActivity.start(this.viewContext)
-             }*/
         }
         return super.onOptionsItemSelected(item)
     }
@@ -169,7 +127,7 @@ abstract class LinkableListFragment<T> :
             return
         }
         val seekView = viewContext.inflate(R.layout.layout_seek_page)
-        seekView.bsb_seek_page?.apply {
+        seekView.findViewById<BubbleSeekBar>(R.id.bsb_seek_page)?.apply {
 
             try {
                 val max = this.javaClass.getDeclaredField("mMax")
@@ -195,7 +153,7 @@ abstract class LinkableListFragment<T> :
                 showEditDialog(info)
                 dialog.dismiss()
             }.positiveText("跳转").onPositive { _, _ ->
-                seekView.bsb_seek_page?.progress?.let {
+                seekView.findViewById<BubbleSeekBar>(R.id.bsb_seek_page)?.progress?.let {
                     mBasePresenter?.jumpToPage(it)
                     adapter.notifyLoadMoreToLoading()
                 }

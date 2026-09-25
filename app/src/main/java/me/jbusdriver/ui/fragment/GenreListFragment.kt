@@ -1,11 +1,9 @@
 package me.jbusdriver.ui.fragment
 
 import android.os.Bundle
-import android.support.v4.widget.SwipeRefreshLayout
-import android.support.v7.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.recyclerview.widget.RecyclerView
 import com.xiaofeng.flowlayoutmanager.FlowLayoutManager
-import kotlinx.android.synthetic.main.layout_recycle.*
-import kotlinx.android.synthetic.main.layout_swipe_recycle.*
 import me.jbusdriver.R
 import me.jbusdriver.base.GSON
 import me.jbusdriver.base.common.AppBaseRecycleFragment
@@ -28,8 +26,8 @@ class GenreListFragment :
     override fun createPresenter() = GenreListPresenterImpl()
 
     override val layoutId: Int = R.layout.layout_swipe_recycle
-    override val swipeView: SwipeRefreshLayout?  by lazy { sr_refresh }
-    override val recycleView: RecyclerView by lazy { rv_recycle }
+    override val swipeView: SwipeRefreshLayout?  by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.sr_refresh) }
+    override val recycleView: RecyclerView by lazy { view!!.findViewById<RecyclerView>(R.id.rv_recycle) }
     override val layoutManager: RecyclerView.LayoutManager  by lazy {
         FlowLayoutManager().apply {
             isAutoMeasureEnabled = true

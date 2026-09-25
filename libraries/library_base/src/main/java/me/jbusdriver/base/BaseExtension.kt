@@ -8,8 +8,8 @@ import android.content.pm.PackageInfo
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
-import android.support.annotation.Nullable
-import android.support.v4.util.ArrayMap
+import androidx.annotation.Nullable
+import android.util.ArrayMap
 import android.text.format.Formatter
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
@@ -126,7 +126,7 @@ val Context.spanCount: Int
 fun Context.copy(content: String) {
     // 得到剪贴板管理器
     val cmb = this.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    cmb.primaryClip = ClipData.newPlainText(null, content)
+    cmb.setPrimaryClip(ClipData.newPlainText(null, content))
 }
 
 /**

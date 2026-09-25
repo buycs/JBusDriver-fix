@@ -6,21 +6,21 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.NavigationView
-import android.support.v4.graphics.drawable.DrawableCompat
-import android.support.v4.view.GravityCompat
-import android.support.v4.widget.DrawerLayout
-import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.widget.Toolbar
+import com.google.android.material.navigation.NavigationView
+import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.widget.Toolbar
 import android.text.TextUtils
 import android.view.MenuItem
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.afollestad.materialdialogs.MaterialDialog
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.nav_header_main.view.*
 import me.jbusdriver.R
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.AppBaseActivity
@@ -84,14 +84,11 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
 
 
         navigationView?.getHeaderView(0)?.apply {
-            tv_app_version.text = packageInfo?.versionName ?: "未知版本"
-            ll_git_url.setOnClickListener {
+            findViewById<TextView>(R.id.tv_app_version).text = packageInfo?.versionName ?: "未知版本"
+            findViewById<LinearLayout>(R.id.ll_git_url).setOnClickListener {
                 browse("https://github.com/Ccixyj/JBusDriver")
             }
-            ll_telegram.setOnClickListener {
-                browse("https://t.me/joinchat/HBJbEA-ka9TcWzaxjmD4hw")
-            }
-            ll_click_reload.setOnClickListener {
+            findViewById<LinearLayout>(R.id.ll_click_reload).setOnClickListener {
                 CacheLoader.lru.evictAll()
                 CacheLoader.acache.clear()
                 JBus.JBusServices.clear()
@@ -99,7 +96,7 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
                 finish()
             }
 
-            tv_app_setting.setOnClickListener {
+            findViewById<TextView>(R.id.tv_app_setting).setOnClickListener {
                 SettingActivity.start(this@MainActivity)
                 drawer.closeDrawer(GravityCompat.START)
             }
@@ -172,7 +169,7 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.movie_forum) {
-            browse("https://www.javbus.com/forum/")
+            ForumBoardActivity.open(this)
             val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
             drawer.closeDrawer(GravityCompat.START)
             return true
@@ -205,9 +202,9 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
         ft.commitAllowingStateLoss()
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         selectMenu?.let {
-            outState?.putInt("MenuSelectedItemId", it.itemId)
+            outState.putInt("MenuSelectedItemId", it.itemId)
         }
         super.onSaveInstanceState(outState)
     }

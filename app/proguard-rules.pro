@@ -46,9 +46,8 @@
 -keep public class * extends android.view.View
 -keep public class com.android.vending.licensing.ILicensingService
 
--keep public class * extends android.support.v4.**
--keep public class * extends android.support.v7.**
--keep public class * extends android.support.annotation.**
+-keep public class * extends androidx.**
+-keep public class * extends com.google.android.material.**
 
 # 保留自定义控件不能被混淆
 -keep public class * extends android.view.View {
@@ -195,14 +194,9 @@ public static final int *;
 #hotfix end
 
 
-# Phantom Service method
--keepclassmembers class * {
-    @com.wlqq.phantom.communication.RemoteMethod <methods>;
-}
-
 #-keep class me.jbusdriver.http.** { *; }
 # Retain service method parameters when optimizing.
 -keepclassmembers,allowshrinking,allowobfuscation interface * {
     @retrofit2.http.* <methods>;
 }
-# Phantom Service method for exclude
+

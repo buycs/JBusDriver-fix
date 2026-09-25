@@ -23,7 +23,7 @@ class GlideNoHostUrl(
 
 
     val httpUrl by lazy {
-        if (url.startsWith("http") || url.startsWith("wwww.")) {
+        if (url.startsWith("http") || url.startsWith("www.")) {
             url
         } else {
             "$providedHost/${url.removePrefix("/")}"
@@ -36,17 +36,12 @@ class GlideNoHostUrl(
 class NoHostImageLoader(private val fac: okhttp3.Call.Factory) :
     ModelLoader<GlideNoHostUrl, InputStream> {
 
-    private val hostHeadersBuilder = LazyHeaders.Builder()
-        .addHeader(
-            "Accept",
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
-        )
-        .addHeader("Accept-Language", "zh-CN,zh;q=0.9")
-        .addHeader("Accept-Encoding", "gzip, deflate, br, zstd")
-        .addHeader(
-            "User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-        )
+    private val baseHeaders: Map<String, String> = linkedMapOf(
+        "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Language" to "zh-CN,zh;q=0.9",
+        "Accept-Encoding" to "gzip, deflate, br, zstd",
+        "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+    )
 
     override fun buildLoadData(
         model: GlideNoHostUrl,
@@ -55,13 +50,16 @@ class NoHostImageLoader(private val fac: okhttp3.Call.Factory) :
         options: Options
     ): ModelLoader.LoadData<InputStream> {
 
-        val hostHeaders = hostHeadersBuilder
-            .addHeader("Referer", model.providedHost + "/")
-            .build()
+        // 每次请求新建 Builder: 复用同一个 builder 会让 Referer 跨请求不断累加
+        val builder = LazyHeaders.Builder()
+        (baseHeaders + ("Referer" to (model.providedHost + "/"))).forEach { (k, v) ->
+            builder.addHeader(k, v)
+        }
+        val hostHeaders = builder.build()
 
         val gUrl = object : GlideUrl(model.httpUrl) {
             override fun getCacheKey() = model.getId()
-            override fun getHeaders() = hostHeaders.headers
+            override fun getHeaders() = hostHeaders
         }
         KLog.d("load for url $model -> $gUrl")
         return ModelLoader.LoadData(gUrl, OkHttpStreamFetcher(fac, gUrl))

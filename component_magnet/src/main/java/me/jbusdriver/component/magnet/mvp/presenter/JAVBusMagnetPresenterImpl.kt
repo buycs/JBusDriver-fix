@@ -34,8 +34,12 @@ class JAVBusMagnetPresenterImpl(private val detailUrl: String) :
     override fun loadData4Page(page: Int) {
         val curPage = PageInfo(page, page + 1)
         val cacheKey = "javbus_official_${detailUrl}_${curPage.activePage}"
-        val cache = Flowable.concat(CacheLoader.justLru(cacheKey), CacheLoader.justDisk(cacheKey)).firstElement()
-            .map { GSON.fromJson<List<Magnet>>(it) }.toFlowable()
+        val cache = Flowable.concat(CacheLoader.justLru(cacheKey), CacheLoader.justDisk(cacheKey))
+            .flatMap { text ->
+                //缓存解析不出来或本来就是空表时只能 onComplete, 否则后面的网络源永远订阅不到
+                val magnets = runCatching { GSON.fromJson<List<Magnet>>(text) }.getOrNull()
+                if (magnets.isNullOrEmpty()) Flowable.empty<List<Magnet>>() else Flowable.just(magnets)
+            }.take(1)
         val loaderFormNet = Flowable.fromCallable {
             val html = service.get(detailUrl).blockingFirst()
             val gid = Regex("gid\\s*=\\s*(\\d+)").find(html)?.groupValues?.getOrNull(1).orEmpty()

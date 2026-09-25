@@ -27,8 +27,12 @@ class MagnetListPresenterImpl(private val magnetLoaderKey: String, private val k
         val curPage = PageInfo(page, page + 1)
         val cacheKey = "${magnetLoaderKey}_${keyword}_${curPage.activePage}"
         //page 1
-        val cache = Flowable.concat(CacheLoader.justLru(cacheKey), CacheLoader.justDisk(cacheKey)).firstElement()
-            .map { GSON.fromJson<List<Magnet>>(it) }.toFlowable()
+        val cache = Flowable.concat(CacheLoader.justLru(cacheKey), CacheLoader.justDisk(cacheKey))
+            .flatMap { text ->
+                //缓存解析不出来或本来就是空表时只能 onComplete, 否则后面的加载源永远订阅不到
+                val magnets = runCatching { GSON.fromJson<List<Magnet>>(text) }.getOrNull()
+                if (magnets.isNullOrEmpty()) Flowable.empty<List<Magnet>>() else Flowable.just(magnets)
+            }.take(1)
         val loaderFormNet = Flowable.fromCallable {
             // 插件 Phantom Service 代理对象
             return@fromCallable try {

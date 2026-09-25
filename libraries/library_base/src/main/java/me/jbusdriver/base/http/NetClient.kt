@@ -2,7 +2,6 @@ package me.jbusdriver.base.http
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.text.TextUtils
 import com.google.gson.JsonObject
 import me.jbusdriver.base.BuildConfig
 import me.jbusdriver.base.GSON
@@ -14,6 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import java.lang.reflect.Type
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 
@@ -28,22 +28,19 @@ object NetClient {
 
     private val EXIST_MAGNET_INTERCEPTOR by lazy {
         Interceptor { chain ->
-            var request = chain.request()
+            val request = chain.request()
+            // 站点接口用 existmag 头表达"是否包含已有磁力", 在这里翻译成站点认的 Cookie
+            val existmag = if (request.header("existmag") == "all") "all" else "mag"
+            val cookie = "existmag=$existmag" +
+                    ";bus_auth=4b85UbbfIo1f9unsrObLRtu0aYAe8VOgu7OjJJBPE95b9jKg0Jqj7xGmCEzb9VJOGoJO"
+            // 追加而不是整体覆盖: 站点下发的会话 Cookie 必须保留
+            val existing = request.header("Cookie")
             val builder = request.newBuilder()
                 .header("User-Agent", USER_AGENT)
                 .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
-            val sb = buildString {
-                append(if (!TextUtils.isEmpty(request.header("existmag"))){
-                    "existmag=all"
-                }else{
-                    "existmag=mag"
-                } )
-                append(";")
-                append("bus_auth=4b85UbbfIo1f9unsrObLRtu0aYAe8VOgu7OjJJBPE95b9jKg0Jqj7xGmCEzb9VJOGoJO")
-            }
-            builder.header("Cookie",sb)
-            request = builder.build()
-            chain.proceed(request)
+                .removeHeader("existmag")
+                .header("Cookie", if (existing.isNullOrEmpty()) cookie else "$existing; $cookie")
+            chain.proceed(builder.build())
         }
     }
     val RxJavaCallAdapterFactory: CallAdapter.Factory = RxJava2CallAdapterFactory.create()
@@ -128,7 +125,8 @@ object NetClient {
             .connectTimeout((15 * 1000).toLong(), TimeUnit.MILLISECONDS)
             .addNetworkInterceptor(EXIST_MAGNET_INTERCEPTOR)
             .cookieJar(object : CookieJar {
-                private val cookieStore = HashMap<String, List<Cookie>>()
+                // OkHttp 会从连接池的多个线程回调这里, 不能用 HashMap
+                private val cookieStore = ConcurrentHashMap<String, List<Cookie>>()
 
                 override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
                     cookieStore[url.host()] = cookies
@@ -142,7 +140,17 @@ object NetClient {
         client.build()
     }
 
-    val glideOkHttpClient: OkHttpClient  by lazy { okHttpClient }
+    val glideOkHttpClient: OkHttpClient by lazy {
+        // 图片域名不需要站点 Cookie, 更不能把 bus_auth 凭据带出去
+        val client = OkHttpClient.Builder()
+            .readTimeout((20 * 1000).toLong(), TimeUnit.MILLISECONDS)
+            .connectTimeout((15 * 1000).toLong(), TimeUnit.MILLISECONDS)
+            .addNetworkInterceptor(PROGRESS_INTERCEPTOR)
+        if (BuildConfig.DEBUG) {
+            client.addInterceptor(LoggerInterceptor("OK_HTTP"))
+        }
+        client.build()
+    }
 
     /**
      * 判断是否有网络可用

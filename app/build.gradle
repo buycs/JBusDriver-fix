@@ -37,21 +37,19 @@ android {
 
     signingConfigs {
         release {
-            try {
-                storeFile file(KEYSTORE_FILE)
-                storePassword KEYSTORE_PASSWORD
-                keyAlias KEYSTORE_ALIAS
-                keyPassword KEY_PASSWORD
-            }
-            catch (ignored) {
-                if (System.getenv("KEYSTORE_FILE") != null) {
-                    storeFile = file(System.getenv("KEYSTORE_FILE"))
-                    storePassword = System.getenv("KEYSTORE_PWD")
-                    keyAlias = System.getenv("KEYSTOREmultiDexEnabled _ALIAS")
-                    keyPassword = System.getenv("KEYSTORE_ALIAS_PWD")
-                } else {
-                    throw GradleException("You should define KEYSTORE_PASSWORD and KEY_PASSWORD in gradle.properties.")
-                }
+            def ksFile = project.hasProperty('KEYSTORE_FILE') ? KEYSTORE_FILE : System.getenv('KEYSTORE_FILE')
+            def ksPwd = project.hasProperty('KEYSTORE_PASSWORD') ? KEYSTORE_PASSWORD : System.getenv('KEYSTORE_PWD')
+            def ksAlias = project.hasProperty('KEYSTORE_ALIAS') ? KEYSTORE_ALIAS : System.getenv('KEYSTORE_ALIAS')
+            def ksKeyPwd = project.hasProperty('KEY_PASSWORD') ? KEY_PASSWORD : System.getenv('KEYSTORE_ALIAS_PWD')
+            def ks = ksFile ? file(ksFile) : null
+            // 签名信息不全就完全不配: buildTypes 用 storeFile 是否为空决定要不要引用它
+            if (ks != null && ks.canRead() && [ksPwd, ksAlias, ksKeyPwd].every { it }) {
+                storeFile ks
+                storePassword ksPwd
+                keyAlias ksAlias
+                keyPassword ksKeyPwd
+            } else {
+                logger.warn("Keystore not configured (KEYSTORE_FILE/KEYSTORE_PASSWORD/KEYSTORE_ALIAS/KEY_PASSWORD), release builds will be unsigned.")
             }
         }
     }
@@ -65,11 +63,15 @@ android {
         additionalParameters "--no-version-vectors"
     }
     buildTypes {
-        debug{
-            signingConfig signingConfigs.release
+        debug {
+            if (signingConfigs.release.storeFile != null) {
+                signingConfig signingConfigs.release
+            }
         }
         release {
-            signingConfig signingConfigs.release
+            if (signingConfigs.release.storeFile != null) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -97,25 +99,32 @@ android {
 //使用git的Tag来自动定制Version
 def VersionCode() {
     def cmd = 'git rev-list master --first-parent --count'//master分支
-//    def cmd = 'git tag'
-//    def cmd = 'git tag'
-//    def code = cmd.execute().text.trim().split("\n").size()
-    def code = cmd.execute().text.trim().toInteger()
+    def out = cmd.execute().text.trim()
+    def code = (out.isInteger() ? out.toInteger() : android.defaultConfig.versionCode) ?: 1
     logger.quiet(cmd + " >>>> code = " + code)
     return code
 }
 
 //使用git的Tag来自动定制Version
 def VersionName() {
+    def fallback = (android.defaultConfig.versionName ?: "0.0.0")
     def cmd = ''' git log --tags --simplify-by-decoration --pretty="format:%d" '''
     def tags = cmd.execute().text.readLines()
     logger.quiet(cmd + " >>>> tags  = " + tags)
-    def verName = tags.find {
-        it.contains("tag:")
-    }.find(Pattern.compile(/tag: v[0-9a-z.-]+/)).replace("tag: v" ,"").trim()
-    logger.quiet(cmd + " >>>> verName  = " + verName)
+    def tagged = tags.find { it.contains("tag:") }
+    if (tagged == null) {
+        logger.warn("No 'tag: vX.Y.Z' found in git history, fallback to default versionName " + fallback)
+        return fallback
+    }
+    def matcher = Pattern.compile(/tag: v[0-9a-z.-]+/).matcher(tagged)
+    if (!matcher.find()) {
+        logger.warn("No version tag found in '" + tagged + "', fallback to default versionName " + fallback)
+        return fallback
+    }
+    def verName = matcher.group().replace("tag: v", "").trim()
     cmd = 'git rev-list  --all  --count'
-    def code = cmd.execute().text.trim().toInteger()
+    def out = cmd.execute().text.trim()
+    def code = out.isInteger() ? out.toInteger() : 0
 
     def versionName = verName + "build" + code
     logger.quiet(cmd + " >>>> versionName  = " + versionName)

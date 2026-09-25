@@ -58,7 +58,8 @@ class HistoryDao(private val db: BriteDatabase) {
 
     val count: Int
         get() = runCatching {
-            db.query("select count(1) from ${HistoryTable.TABLE_NAME}").let {
+            // query 出来的 Cursor 必须关, 否则 Count 被频繁调用时会耗尽 CursorWindow
+            db.query("select count(1) from ${HistoryTable.TABLE_NAME}").use {
                 if (it.moveToFirst()) {
                     it.getInt(0)
                 } else -1

@@ -23,11 +23,11 @@ class MainPresenterImpl : BasePresenterImpl<MainContract.MainView>(), MainContra
 
     private fun fetchUpdate() {
         Flowable.concat<JsonObject>(
-            CacheLoader.justLru(C.Cache.ANNOUNCE_VALUE).map { GSON.fromJson<JsonObject>(it) },
-            CacheLoader.justDisk(C.Cache.ANNOUNCE_VALUE).map { GSON.fromJson<JsonObject>(it) },
+            CacheLoader.justLru(C.Cache.ANNOUNCE_VALUE).flatMap { announce(it) },
+            CacheLoader.justDisk(C.Cache.ANNOUNCE_VALUE).flatMap { announce(it) },
             GitHub.INSTANCE.announce().addUserCase()
                 .map { GSON.fromJson<JsonObject>(it) }
-                .doOnNext {  CacheLoader.cacheDisk(C.Cache.ANNOUNCE_VALUE to it)}
+                .doOnNext { CacheLoader.cacheDisk(C.Cache.ANNOUNCE_VALUE to it, C.Cache.DAY / 4) }
         )
             .firstOrError()
             .map {
@@ -60,5 +60,14 @@ class MainPresenterImpl : BasePresenterImpl<MainContract.MainView>(), MainContra
             })
             .addTo(rxManager)
     }
+
+    /**
+     * 缓存里的公告解析不出来(旧格式/写坏)时必须发 onComplete 而不是 onError,
+     * 否则 concat 会直接终止, 永远走不到后面的网络源。
+     */
+    private fun announce(text: String): Flowable<JsonObject> =
+        runCatching { GSON.fromJson<JsonObject>(text) }.getOrNull()
+            ?.takeIf { it.size() > 0 }
+            ?.let { Flowable.just(it) } ?: Flowable.empty<JsonObject>()
 
 }

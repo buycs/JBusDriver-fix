@@ -1,6 +1,5 @@
 package me.jbusdriver.mvp.presenter
 
-import android.support.v4.util.ArrayMap
 import io.reactivex.Flowable
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.C
@@ -24,8 +23,7 @@ import org.jsoup.nodes.Document
 open class HomeMovieListPresenterImpl(val type: DataSourceType, val link: ILink) : LinkAbsPresenterImpl<Movie>(link) {
 
     private val urls by lazy {
-        CacheLoader.acache.getAsString(C.Cache.BUS_URLS)?.let { GSON.fromJson<ArrayMap<String, String>>(it) }
-            ?: arrayMapof()
+        CacheLoader.readCacheMap(C.Cache.BUS_URLS) ?: arrayMapof<String, String>()
     }
     private val saveKey: String
         inline get() = "${type.key}$IsAll"
@@ -33,7 +31,7 @@ open class HomeMovieListPresenterImpl(val type: DataSourceType, val link: ILink)
         JAVBusService.getInstance(
             urls[type.key]
                 ?: JAVBusService.defaultFastUrl
-        ).apply { JAVBusService.INSTANCE = this }
+        )
     }
 
     private val loadFromNet = { page: Int ->

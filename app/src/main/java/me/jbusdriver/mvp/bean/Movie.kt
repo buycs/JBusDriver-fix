@@ -30,7 +30,8 @@ fun loadMovieFromDoc(str: Document): List<Movie> {
         Movie(
             title = element.select("img").attr("title"),
             imageUrl = element.select("img").attr("src").wrapImage(),
-            code = element.select("date").first().text(),
+            // jsoup 的 first() 找不到元素时返回 null, 卡片缺 date 标签时这里会直接 NPE
+            code = element.select("date").firstOrNull()?.text().orEmpty(),
             date = element.select("date").getOrNull(1)?.text() ?: "",
             link = element.attr("href"),
             tags = element.select(".item-tag").firstOrNull()?.children()?.map { it.text() }

@@ -17,10 +17,10 @@ import io.reactivex.plugins.RxJavaPlugins
 import me.jbusdriver.BuildConfig
 import me.jbusdriver.base.GSON
 import me.jbusdriver.base.JBusManager
-import me.jbusdriver.base.arrayMapof
 import me.jbusdriver.http.JAVBusService
 import java.io.File
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 
 lateinit var JBus: AppContext
@@ -28,13 +28,14 @@ lateinit var JBus: AppContext
 
 class AppContext : Application() {
 
-    val JBusServices by lazy { arrayMapof<String, JAVBusService>() }
+    val JBusServices by lazy { ConcurrentHashMap<String, JAVBusService>() }
     private val isDebug by lazy {
-        BuildConfig.DEBUG || File(
+        // 文件标记只允许在 debug 包生效: 外部存储目录任何持有存储权限的应用都能写,
+        // 否则正式版会被诱导关闭 Phantom 的插件签名校验
+        BuildConfig.DEBUG && File(
             Environment.getExternalStorageDirectory().absolutePath + File.separator +
                     packageName
                     + File.separator + "debug"
-
         ).exists()
     }
 

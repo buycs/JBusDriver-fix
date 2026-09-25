@@ -5,6 +5,7 @@ import io.reactivex.Flowable
 import io.reactivex.FlowableEmitter
 import io.reactivex.rxkotlin.addTo
 import me.jbusdriver.base.*
+import me.jbusdriver.base.common.C
 import me.jbusdriver.base.mvp.model.AbstractBaseModel
 import me.jbusdriver.base.mvp.model.BaseModel
 import me.jbusdriver.base.mvp.presenter.BasePresenterImpl
@@ -25,7 +26,7 @@ class MovieDetailPresenterImpl(private val fromHistory: Boolean) :
     private val loadFromNet = { s: String ->
         JAVBusService.INSTANCE.get(s).addUserCase().map { parseMovieDetails(Jsoup.parse(it)) }
             .doOnNext {
-                s.urlPath.let { key -> CacheLoader.cacheDisk(key to it) }
+                s.urlPath.let { key -> CacheLoader.cacheDisk(key to it, C.Cache.DAY * 7) }
             }
             ?: Flowable.empty()
     }
@@ -33,19 +34,18 @@ class MovieDetailPresenterImpl(private val fromHistory: Boolean) :
         object : AbstractBaseModel<String, MovieDetail>(loadFromNet) {
             override fun requestFromCache(t: String): Flowable<MovieDetail> {
                 val disk = Flowable.create({ emitter: FlowableEmitter<MovieDetail> ->
-                    mView?.let { view ->
-                        val saveKey = t.urlPath
-                        CacheLoader.acache.getAsString(saveKey)?.let {
-                            val old = GSON.fromJson<MovieDetail>(it)
-                            val res =
-                                if (old != null && mView?.movie?.link?.urlHost?.isEndWithXyzHost == false) {
-                                    val new = old.checkUrl(JAVBusService.defaultFastUrl)
-                                    if (old != new) CacheLoader.cacheDisk(saveKey to new)
-                                    new
-                                } else old
-                            emitter.onNext(res)
-                        } ?: emitter.onComplete()
-                    } ?: emitter.onComplete()
+                    //缓存读不出或解析失败都走 onComplete: onError 会让 concat 订阅不到后面的网络源
+                    val cached = mView?.let {
+                        CacheLoader.readDiskAsString(t.urlPath)?.let { text ->
+                            runCatching { GSON.fromJson<MovieDetail>(text) }.getOrNull()
+                        }
+                    }
+                    val res = if (cached != null && mView?.movie?.link?.urlHost?.isEndWithXyzHost == false) {
+                        val new = cached.checkUrl(JAVBusService.defaultFastUrl)
+                        if (cached != new) CacheLoader.cacheDisk(t.urlPath to new, C.Cache.DAY * 7)
+                        new
+                    } else cached
+                    res?.let { emitter.onNext(it) } ?: emitter.onComplete()
                 }, BackpressureStrategy.DROP)
 
                 return Flowable.concat(disk, requestFor(t)).firstOrError().toFlowable()

@@ -59,7 +59,6 @@ class ForumThreadActivity : BaseActivity() {
         if (nextUrl.isBlank()) return
         btn_load_more.isEnabled = false
         fetchAndParse(nextUrl) { post ->
-            btn_load_more.isEnabled = true
             addFloors(post)
         }
     }
@@ -73,7 +72,11 @@ class ForumThreadActivity : BaseActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { onSuccess(it) },
-                { showError(it.message ?: "加载失败", keepContent = true) }
+                {
+                    // 失败一定要恢复按钮, 否则"加载更多"点一次就永久置灰了
+                    btn_load_more.isEnabled = true
+                    showError(it.message ?: "加载失败", keepContent = true)
+                }
             )
     }
 
@@ -99,6 +102,7 @@ class ForumThreadActivity : BaseActivity() {
 
     private fun updateLoadMore(post: ForumThreadPost) {
         nextUrl = post.nextUrl
+        btn_load_more.isEnabled = true
         btn_load_more.visibility = if (post.hasNext) View.VISIBLE else View.GONE
     }
 
@@ -140,7 +144,6 @@ class ForumThreadActivity : BaseActivity() {
         pb_loading.visibility = View.GONE
         if (keepContent && ll_floors.childCount > 0) {
             toast(msg)
-            btn_load_more.isEnabled = true
             return
         }
         tv_error.visibility = View.VISIBLE

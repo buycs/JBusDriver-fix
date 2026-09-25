@@ -27,8 +27,12 @@ class PluginService : IntentService("PluginService") {
         if (intent != null) {
             when (intent.action) {
                 ACTION_PLUGINS_DOWNLOAD -> {
-                    val plugins =
-                        GSON.fromJson<List<PluginBean>>(intent.getStringExtra(ACTION_PLUGINS_DOWNLOAD).orEmpty())
+                    // 参数缺失或不是数组时 Gson 会返回 null, 直接 isNotEmpty() 会崩掉整个 IntentService
+                    val plugins = runCatching {
+                        GSON.fromJson<List<PluginBean>>(
+                            intent.getStringExtra(ACTION_PLUGINS_DOWNLOAD).orEmpty()
+                        )
+                    }.getOrNull().orEmpty()
                     if (plugins.isNotEmpty()) {
                         handleDownAndInstall(plugins)
                     }

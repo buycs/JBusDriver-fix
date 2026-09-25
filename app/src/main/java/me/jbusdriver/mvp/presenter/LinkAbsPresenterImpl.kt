@@ -67,13 +67,19 @@ abstract class LinkAbsPresenterImpl<T>(val linkData: ILink, private val isHistor
             (if (t == 1) linkData.link else "${linkData.link.urlHost}$urlPath/$t").let {
                 JAVBusService.INSTANCE.get(it, if (IsAll) "all" else "").addUserCase().map { Jsoup.parse(it) }
             }.doOnNext {
-                if (t == 1) CacheLoader.lru.put("${linkData.link}$IsAll", it.toString())
+                // 键含 IsAll: 同一链接的"含已有磁力/不含"两份页面内容不同
+                if (t == 1) CacheLoader.cacheLru("$firstPageCacheKey$IsAll" to it.toString())
             }
 
         override fun requestFromCache(t: Int) =
-            Flowable.concat(CacheLoader.justLru(linkData.link).map { Jsoup.parse(it) }, requestFor(t))
-                .firstOrError().toFlowable()
+            Flowable.concat(
+                if (t == 1) CacheLoader.justLru("$firstPageCacheKey$IsAll").map { Jsoup.parse(it) }
+                else Flowable.empty<Document>(),
+                requestFor(t)
+            ).firstOrError().toFlowable()
     }
+
+    private val firstPageCacheKey get() = linkData.link
 
     protected open fun addHistory(link: ILink) {
         HistoryService.insert(History(link.DBtype, Date(), link.toJsonString(), IsAll))
@@ -81,7 +87,7 @@ abstract class LinkAbsPresenterImpl<T>(val linkData: ILink, private val isHistor
 
     override fun onRefresh() {
         dataPageCache.clear()
-        CacheLoader.lru.remove(linkData.link)
+        CacheLoader.lru.remove("$firstPageCacheKey$IsAll")
         super.onRefresh()
     }
 

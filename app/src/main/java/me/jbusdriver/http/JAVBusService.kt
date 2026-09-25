@@ -7,6 +7,7 @@ import me.jbusdriver.common.JBus
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Url
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * Created by Administrator on 2017/4/8.
@@ -21,23 +22,33 @@ interface JAVBusService {
 
 
     companion object {
+        @Volatile
         var defaultFastUrl = "https://www.seedmm.life"
+
+        @Volatile
         var defaultXyzUrl = "https://www.javbus.one"
-        val xyzHostDomains by lazy {
-            mutableSetOf<String>().apply {
-                this.add(defaultXyzUrl.takeLast(defaultXyzUrl.lastIndexOf(".").coerceAtLeast(0)))
-            }
+
+        // 站点探测在 IO 线程写入, Glide 在主线程读取; 写一次读多次, 用写时复制集合最省事
+        val xyzHostDomains: MutableSet<String> by lazy {
+            CopyOnWriteArraySet(listOf(topLevelDomain(defaultXyzUrl)))
         }
 
+        /** 始终跟随当前 defaultFastUrl, 不再有可变的全局单例 */
+        val INSTANCE: JAVBusService
+            get() = getInstance(defaultFastUrl)
 
-        var INSTANCE = getInstance(defaultFastUrl)
         fun getInstance(source: String): JAVBusService {
-            //JBusServices[type] 会出异常
             return JBus.JBusServices.getOrPut(source) {
                 createService(source)
             }.apply {
                 KLog.d("instances : ${JBus.JBusServices}, defaultFastUrl : $defaultFastUrl")
             }
+        }
+
+        private fun topLevelDomain(url: String): String {
+            val host = runCatching { okhttp3.HttpUrl.parse(url)?.host() }.getOrNull()
+                ?: url.substringAfter("://", url).substringBefore("/")
+            return "." + host.substringAfterLast(".")
         }
 
         private fun createService(url: String) =

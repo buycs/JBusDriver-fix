@@ -169,7 +169,7 @@ class LinkItemDao(private val db: BriteDatabase) {
             db.query(
                 "SELECT count(1) FROM ${LinkItemTable.TABLE_NAME} WHERE ${LinkItemTable.COLUMN_DB_TYPE} = ? AND ${LinkItemTable.COLUMN_KEY} = ?",
                 item.type, item.key
-            ).let {
+            ).use {
                 if (it.moveToFirst()) {
                     it.getInt(0)
                 } else -1

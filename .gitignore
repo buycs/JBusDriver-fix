@@ -54,6 +54,12 @@ captures/
 *.jks
 /.idea/
 /projectFilesBackup/.idea
-/gradlew
 /local.properties
 /gradle-build/
+
+# asms 1.2.2 没有 x86_64 的 libumeng-spy.so, 本地补一份绕过 INSTALL_FAILED_NO_MATCHING_ABIS;
+# 第三方二进制不入库, 所以这个目录只在本机有效
+/app/native-libs/
+
+# 另一个 agent 的会话记录与截图取证
+/.workbuddy-ai/

@@ -1,58 +1,53 @@
 # JBusDriver
 
-JAVBUS 的第三方 Android 客户端，受 [JAViewer](https://github.com/SplashCodes/JAViewer) 启发编写，感谢原作者。
+JAVBUS 的第三方 Android 客户端，受 [JAViewer](https://github.com/SplashCodes/JAViewer) 启发编写。
 
-原项目地址：<https://github.com/Ccixyj/JBusDriver.git>
-
-本仓库为持续维护的修复版本：在原有功能基础上修复图片加载、缓存更新等问题，并补充论坛热帖的原生阅读体验。
-
-- 技术栈：`Kotlin + MVP + RxJava2 + Retrofit2 + OkHttp3 + jsoup + Glide`
-- 架构：自 1.2.14 起采用 [CC 组件化](https://github.com/luckybilly/CC)，1.2.16 起采用 [Phantom 插件化](https://github.com/ManbangGroup/Phantom)
+原项目：<https://github.com/Ccixyj/JBusDriver.git>，本仓库是其修复分支。
 
 ## 功能
 
-- 有码 / 无码 / 欧美 三大分类，女优、类别、高清、字幕筛选
-- 影片搜索、详情页（封面预览、磁力链接、相关论坛帖子）
-- 磁力解析（内置磁力组件 + 可独立升级的磁力插件）
-- 收藏夹、浏览历史、 actress 收藏
-- 论坛热帖原生阅读：详情页帖子直达，楼层支持翻页加载
-- 大图浏览、站点公告与版本更新提示
+- 影片：有码 / 无码 / 高清 / 字幕四类
+- 搜索：有码 / 无码 / 女优 / 导演 / 制作商 / 发行商 / 系列七类结果分页
+- 详情页：封面预览、磁力链接、相关论坛帖子
+- 磁力解析：内置多个站点解析器
+- 论坛：首页轮播 + 热帖 + 分组板块，帖子楼层原生阅读并支持翻页
+- 收藏夹、浏览历史
+- 两套外壳：侧边抽屉 / 底部导航，在设置里切换后重启生效
 
-## 项目结构
+## 模块
 
 | 模块 | 说明 |
 |---|---|
-| `app` | 主程序，聚合各组件与页面 |
-| `component_magnet` | 磁力解析组件（CC 组件） |
-| `component_interceptors` | 网络/图片请求拦截器组件 |
-| `component_plugin_manager` | Phantom 插件管理组件 |
-| `libraries/library_base` | 基础库（网络、图片、MVP 基类） |
+| `app` | 主程序与全部页面 |
+| `component_magnet` | 磁力解析库 |
+| `libraries/library_base` | 网络、图片、MVP 基类与通用控件 |
 | `libraries/library_common_bean` | 公共数据模型 |
-| `plugins/plugin_magnet` | 磁力插件（独立打包，可热更新） |
-| `buildscripts` | CC 组件化构建脚本 |
 
 ## 构建
 
-环境要求：
+Gradle / AGP / Kotlin / SDK 版本统一来自共享基线仓库的 `libs.versions.toml`，
+本仓库需与该基线仓库**同级** clone，否则 `settings.gradle` 解析不到 catalog。
 
-- JDK 8（`org.gradle.java.home` 需指向 JDK 8，Gradle 5.4.1 不支持高版本 JDK）
-- Android SDK（compileSdk / buildTools 28.0.3）
-- Gradle 5.4.1（使用仓库内 wrapper 即可，无需本机安装）
+- JDK 17，Gradle 8.13（wrapper 自带，无需本机安装），AGP 8.9.3，Kotlin 2.1.0
+- compileSdk 36 / targetSdk 35 / minSdk 23 / buildTools 35.0.0
 
-配置 `local.properties`（已加入 `.gitignore`，不会提交）：
+本地 SDK 路径写在 `local.properties`（已 gitignore）的 `sdk.dir`。
 
-```properties
-sdk.dir=C\:\\Users\\<you>\\android-sdk-windows
-org.gradle.java.home=C\:\\<path-to-jdk8>
-```
-
-签名配置在 `gradle.properties` 中通过 `KEYSTORE_FILE` / `KEYSTORE_PASSWORD` / `KEYSTORE_ALIAS` / `KEY_PASSWORD` 提供；未配置时会回退到环境变量 `KEYSTORE_FILE` / `KEYSTORE_PWD` / `KEYSTORE_ALIAS` / `KEYSTORE_ALIAS_PWD`。仅本地调试时可删除 `gradle.properties` 中的签名项，改用默认 debug 签名（需要自行调整 `signingConfigs`）。
-
-常用命令（Windows）：
+签名信息不入库。四项 `KEYSTORE_FILE` / `KEYSTORE_PASSWORD` / `KEYSTORE_ALIAS` / `KEY_PASSWORD`
+放在**用户级** `$GRADLE_USER_HOME/gradle.properties`（仓库外，不会被提交），模板见 `gradle.properties.example`；
+也可以不放文件、改用环境变量 `KEYSTORE_FILE` / `KEYSTORE_PWD` / `KEYSTORE_ALIAS` / `KEYSTORE_ALIAS_PWD`。
+`KEYSTORE_FILE` 相对 app 模块解析，`../jbus.jks` 即仓库根目录。
+配置齐全时 debug 与 release 共用该签名，否则 release 不签名、debug 用默认签名。
+网络代理同样是机器专属项，`systemProp.http(s).proxyHost/Port` 也放用户级配置，不要写进仓库这份。
 
 ```bat
-gradlew.bat assembleDebug        :: 调试包（渠道 gayhub）
-gradlew.bat assembleRelease      :: 混淆签名包，产物命名 JubsDriver[vX.Y.Z]_(code_N).apk
+gradlew.bat assembleDebug      :: 调试包
+gradlew.bat assembleRelease    :: 混淆 + 资源压缩，产物 JubsDriver-v<versionName>.apk
 ```
 
-Release 的 `versionName` / `versionCode` 由 git tag 与提交数自动生成，打 tag 后再出包。
+版本号写死在 `app/build.gradle` 的 `defaultConfig`，不再从 git tag 推导。
+
+## 备注
+
+- `app/native-libs/` 放的是 Umeng 的 x86_64 `libumeng-spy.so`（官方只发布到 x86），缺失时纯 x86_64 设备会 `INSTALL_FAILED_NO_MATCHING_ABIS`。
+- 站点地址写死在本地，不再走云端下发与探活换站。

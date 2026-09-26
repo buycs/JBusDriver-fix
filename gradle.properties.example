@@ -1,0 +1,21 @@
+# release 签名配置。这份是模板, 真实值不要提交进仓库。
+#
+# 用法: 复制到用户级配置 $GRADLE_USER_HOME/gradle.properties（仓库外, 不会被提交）。
+# 签名四项也可以用同名环境变量代替, app/build.gradle 里两种取法都支持。
+#
+# 四项缺任意一项时, release 不配置签名并打一条 warning, debug 包不受影响。
+# KEYSTORE_FILE 的相对路径按 app 模块目录解析, ../jbus.jks 即仓库根下的 jbus.jks。
+
+KEYSTORE_FILE=../jbus.jks
+KEYSTORE_PASSWORD=
+KEYSTORE_ALIAS=
+KEY_PASSWORD=
+
+# 机器专属的网络代理, 同样只放用户级配置。JVM 只认 http/https 这一组,
+# socks 与命令行工具走的 ALL_PROXY 在这里是无效项, 删掉也不影响构建。
+# 用 Clash TUN 模式的话这组本来就不需要(网络层已接管), 保持注释即可。
+
+#systemProp.http.proxyHost=127.0.0.1
+#systemProp.http.proxyPort=7890
+#systemProp.https.proxyHost=127.0.0.1
+#systemProp.https.proxyPort=7890

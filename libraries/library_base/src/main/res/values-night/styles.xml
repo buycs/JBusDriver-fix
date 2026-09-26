@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色档的 style 覆盖。
+     Toolbar 的溢出菜单弹窗: 浅色档用 Light 弹窗, 深色档必须换 Dark,
+     否则深色界面里弹出一块白底菜单。 -->
+<resources>
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark" />
+
+</resources>

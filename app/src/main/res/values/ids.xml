@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--底部导航那六个页签的 id: 抽屉那套是 menu item id, 底部这套要能跟它并存-->
+    <item name="bottom_movie" type="id" />
+    <item name="bottom_actress" type="id" />
+    <item name="bottom_search" type="id" />
+    <item name="bottom_collect" type="id" />
+    <item name="bottom_forum" type="id" />
+    <item name="bottom_setting" type="id" />
+</resources>

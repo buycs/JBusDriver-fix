@@ -10,4 +10,10 @@
     <color name="forum_divider">#E0E0E0</color>
     <color name="forum_quote_bg">#F5F5F5</color>
     <color name="forum_quote_bar">#BDBDBD</color>
+
+    <!-- 论坛里几块「底色」, 深色档在 values-night 覆盖 -->
+    <color name="forum_section_bg">#FAFAFA</color>
+    <color name="forum_hot_bg">#FFFFFF</color>
+    <color name="forum_panel_bg">#F0F0F0</color>
+    <color name="forum_board_tag_bg">#C8E6C9</color>
 </resources>

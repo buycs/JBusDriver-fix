@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--TabLayout 在 wrap_content 下会给内部 indicator 写死 48dp 的 minimumHeight, 只减 padding 压不动, 所以高度写死-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -8,7 +9,7 @@
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="36dp"
         android:background="@color/colorAccent"
         app:tabBackground="@color/colorPrimary"
         app:tabGravity="fill"
@@ -17,7 +18,9 @@
         app:tabMaxWidth="2000dp"
         app:tabMode="fixed"
         app:tabSelectedTextColor="@android:color/white"
-        app:tabTextColor="@color/gray"
+        app:tabTextColor="@color/tabTextIdle"
+        app:tabPaddingTop="6dp"
+        app:tabPaddingBottom="6dp"
       />
 
 

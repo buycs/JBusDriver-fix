@@ -3,13 +3,21 @@
     <style name="ForumSectionTitle">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:background">#FAFAFA</item>
+        <item name="android:background">@color/forum_section_bg</item>
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">16dp</item>
         <item name="android:paddingTop">10dp</item>
         <item name="android:paddingBottom">10dp</item>
-        <item name="android:textColor">@color/forum_time</item>
+        <item name="android:textColor">@color/forum_body</item>
         <item name="android:textSize">13sp</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <!--设置页卡片里两行之间的那条线: 左边缩进对齐行的文字-->
+    <style name="SettingRowDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1px</item>
+        <item name="android:layout_marginStart">@dimen/material_16dp</item>
+        <item name="android:background">@color/divider</item>
     </style>
 </resources>

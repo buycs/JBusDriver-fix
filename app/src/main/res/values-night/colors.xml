@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色档的颜色覆盖。
+     论坛页的配色原本是按浅色底手调的, 这里把「底」压暗、「字」提亮,
+     对比度按 Material 深色规范取值 (底 #303030 / 卡片 #2A2A2A)。
+     语义色 (floor_no/author/board_tag) 提亮到 200 系, 否则在深底上发闷。 -->
+<resources>
+
+    <color name="forum_floor_no">#EF5350</color>
+    <color name="forum_author">#9FA8DA</color>
+    <color name="forum_time">#9E9E9E</color>
+    <color name="forum_body">#E0E0E0</color>
+    <color name="forum_board_tag">#81C784</color>
+    <color name="forum_divider">#424242</color>
+    <color name="forum_quote_bg">#2A2A2A</color>
+    <color name="forum_quote_bar">#616161</color>
+
+    <color name="forum_section_bg">#1F1F1F</color>
+    <color name="forum_hot_bg">#2A2A2A</color>
+    <color name="forum_panel_bg">#262626</color>
+    <color name="forum_board_tag_bg">#1B5E20</color>
+</resources>

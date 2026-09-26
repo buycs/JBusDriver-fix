@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <!-- Base application theme.
+        Bridge 主题: 保留 AppCompat 那套控件样式, 只补上 MaterialComponents 的属性,
+        否则 BottomNavigationView 起不来。
+        必须用 DayNight: 设置里的「主题」三档走 AppCompatDelegate.setDefaultNightMode,
+        只有 DayNight 父类才会真正换颜色; 深色值全部由 values-night 提供。 -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.Bridge">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <!-- 顶栏底色走 colorAppBar 而不是 colorPrimary:
+             深色档下只有顶栏/状态栏压暗, 品牌绿留给标签、转圈、页签高亮 -->
+        <item name="colorPrimary">@color/colorAppBar</item>
+        <item name="colorPrimaryDark">@color/colorStatusBar</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- material-dialogs 0.9.6.0 不看 uiMode, 只认主题里的 md_dark_theme:
+             DialogInit.getTheme() 取的是 resolveBoolean(context, R.attr.md_dark_theme,
+             builder.theme == Theme.DARK), 而 Builder.theme 默认就是 LIGHT ——
+             这个属性不设, 深色档下所有弹窗仍是白底。
+             写 @bool 引用而不是直接写 true: 主题属性没法分档, 只有资源引用能跟着 values-night 切。 -->
+        <item name="md_dark_theme">@bool/mdDialogDark</item>
     </style>
 
     <style name="AppTheme.NoActionBar">

@@ -10,7 +10,6 @@
     <!-- 論壇只读页面 -->
     <string name="forum_arrow">›</string>
     <string name="forum_board_title">論壇</string>
-    <string name="forum_hot_tab_hot">熱門主題</string>
     <string name="forum_load_failed">加載失敗</string>
     <string name="forum_empty">沒有內容</string>
     <string name="forum_thread_default">論壇熱帖</string>

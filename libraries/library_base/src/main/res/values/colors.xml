@@ -11,6 +11,17 @@
     <color name="divider">#BDBDBD</color>
     <color name="error">#ffff0030</color>
 
+    <!-- 顶栏(含状态栏)的底色。
+         单独拎出来是因为 colorPrimary 还被当品牌色用(演员标签底、转圈、页签高亮),
+         那些地方深色档下要保持绿色, 只有顶栏要压暗 —— 见 values-night。 -->
+    <color name="colorAppBar">#4CAF50</color>
+    <color name="colorStatusBar">#388E3C</color>
+
+    <!-- TabLayout 未选中项的文字色。
+         它永远压在绿色 tabBackground 上, 所以不能跟着主题走 ——
+         深色档下若沿用 gray(#424242) 会变成绿底深灰字, 几乎看不见。 -->
+    <color name="tabTextIdle">#ddd</color>
+
 
     <color name="white">#ffffffff</color>
     <color name="gray">#ddd</color>

@@ -56,7 +56,7 @@
         android:id="@+id/ll_pagination"
         android:layout_width="match_parent"
         android:layout_height="44dp"
-        android:background="@android:color/white"
+        android:background="@color/forum_hot_bg"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="16dp"

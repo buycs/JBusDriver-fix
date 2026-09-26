@@ -35,7 +35,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:lineSpacingMultiplier="1.1"
-            android:textColor="#616161"
+            android:textColor="@color/forum_body"
             android:textColorLink="#1565C0"
             android:textSize="14sp" />
     </LinearLayout>

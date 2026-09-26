@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色档的颜色覆盖。
+     只覆盖「随主题变」的语义色: 文字、分隔线、灰底。
+     品牌色 (colorPrimary/colorPrimaryDark/colorAccent) 和 icons 保持原值,
+     toolbar 在深色下依旧是绿底白字。 -->
+<resources>
+
+    <color name="primaryText">#E0E0E0</color>
+    <color name="secondText">#9E9E9E</color>
+    <color name="divider">#424242</color>
+    <color name="gray">#424242</color>
+
+    <!-- 顶栏和状态栏压暗到和页面底同级, 否则深色界面上顶一条亮绿很刺眼 -->
+    <color name="colorAppBar">#1F1F1F</color>
+    <color name="colorStatusBar">#1F1F1F</color>
+
+</resources>

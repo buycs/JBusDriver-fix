@@ -30,7 +30,7 @@
             android:id="@+id/tv_thread_board"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/colorPrimaryLight"
+            android:background="@color/forum_board_tag_bg"
             android:paddingStart="6dp"
             android:paddingEnd="6dp"
             android:layout_marginEnd="8dp"

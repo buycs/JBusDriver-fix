@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色档的开关覆盖。浅色档的值在 values/bools.xml。 -->
+<resources>
+
+    <!-- 深色档下让 material-dialogs 走 MD_Dark, 否则弹窗仍是白底 -->
+    <bool name="mdDialogDark">true</bool>
+
+</resources>

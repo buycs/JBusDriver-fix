@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AppTheme 里的主题属性用到的开关。深色档的值在 values-night/bools.xml。 -->
+<resources>
+
+    <!-- material-dialogs 的弹窗主题: false = MD_Light, true = MD_Dark -->
+    <bool name="mdDialogDark">false</bool>
+
+</resources>

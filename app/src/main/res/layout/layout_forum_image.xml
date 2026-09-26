@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="200dp"
     android:layout_marginBottom="8dp"
-    android:background="#F0F0F0">
+    android:background="@color/forum_panel_bg">
 
     <!-- 高度固定: Glide 加载完成前后 item 高度不能变, 否则 RecyclerView 会算错偏移、楼层串位 -->
     <ImageView

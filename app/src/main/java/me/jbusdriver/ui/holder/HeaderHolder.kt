@@ -18,7 +18,6 @@ import me.jbusdriver.mvp.bean.convertDBItem
 import me.jbusdriver.mvp.bean.des
 import me.jbusdriver.mvp.model.CollectModel
 import me.jbusdriver.ui.activity.MovieListActivity
-import me.jbusdriver.ui.data.AppConfiguration
 import me.jbusdriver.ui.data.contextMenu.LinkMenu
 
 /**
@@ -64,11 +63,9 @@ class HeaderHolder(context: Context) : BaseHolder(context) {
                         }
                     }.toMutableMap()
 
-                    if (AppConfiguration.enableCategory) {
-                        val ac = action.remove("收藏")
-                        if (ac != null) {
-                            action["收藏到分类..."] = ac
-                        }
+                    val ac = action.remove("收藏")
+                    if (ac != null) {
+                        action["收藏到分类..."] = ac
                     }
 
                     MaterialDialog.Builder(holder.itemView.context).title(item.name).content(item.des)

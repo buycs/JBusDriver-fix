@@ -8,7 +8,6 @@ import me.jbusdriver.R
 import me.jbusdriver.base.ui.fragment.TabViewPagerFragment
 import me.jbusdriver.mvp.MineCollectContract
 import me.jbusdriver.mvp.presenter.MineCollectPresenterImpl
-import me.jbusdriver.ui.data.AppConfiguration
 
 /**
  * since 1.1 remove info menu
@@ -35,12 +34,7 @@ class MineCollectFragment :
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        if (AppConfiguration.enableCategory) inflater.inflate(R.menu.menu_collect, menu)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
-        menu.findItem(R.id.action_collect_dir_edit)?.isVisible = AppConfiguration.enableCategory
+        inflater.inflate(R.menu.menu_collect, menu)
     }
 
 

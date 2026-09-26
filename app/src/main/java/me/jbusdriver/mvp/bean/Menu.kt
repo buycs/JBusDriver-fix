@@ -1,21 +1,13 @@
 package me.jbusdriver.mvp.bean
 
 import androidx.annotation.IdRes
-import com.chad.library.adapter.base.entity.AbstractExpandableItem
-import com.chad.library.adapter.base.entity.MultiItemEntity
 import me.jbusdriver.R
 import me.jbusdriver.base.common.BaseFragment
-import me.jbusdriver.ui.data.AppConfiguration
 import me.jbusdriver.ui.data.enums.DataSourceType
 import me.jbusdriver.ui.fragment.*
 
-/*首页菜单配置化*/
-data class MenuOp(@IdRes val id: Int, val name: String, val initializer: () -> BaseFragment) : MultiItemEntity {
-
-    override fun getItemType() = Expand_Type_Item
-
-    var isHow: Boolean = true
-        get() = AppConfiguration.menuConfig[name] ?: true
+/*抽屉菜单: 每一项对应 content_main 里的一个 Fragment*/
+data class MenuOp(@IdRes val id: Int, val name: String, val initializer: () -> BaseFragment) {
 
     companion object {
         val Ops: List<MenuOp> by lazy { mine + nav_ma + nav_uncensore + nav_other }
@@ -54,13 +46,23 @@ data class MenuOp(@IdRes val id: Int, val name: String, val initializer: () -> B
         val nav_other by lazy {
             listOf(
                 MenuOp(R.id.movie_hd, "高清") { HomeMovieListFragment.newInstance(DataSourceType.GENRE_HD) },
-                MenuOp(R.id.movie_sub, "字幕") { HomeMovieListFragment.newInstance(DataSourceType.Sub) }
+                MenuOp(R.id.movie_sub, "字幕") { HomeMovieListFragment.newInstance(DataSourceType.Sub) },
+                MenuOp(R.id.movie_forum, "論壇") { ForumHomeFragment.newInstance() }
             )
         }
-    }
-}
 
-data class MenuOpHead(val name: String) : AbstractExpandableItem<MenuOp>(), MultiItemEntity {
-    override fun getItemType(): Int = Expand_Type_Head
-    override fun getLevel() = 0
+        /*底部导航样式的六个页签, id 用 bottom_* 那套, 与抽屉互不冲突*/
+        val BottomOps: List<MenuOp> by lazy {
+            listOf(
+                MenuOp(R.id.bottom_movie, "影片") { MoviePagesFragment.newInstance() },
+                MenuOp(R.id.bottom_actress, "女优") { ActressPagesFragment.newInstance() },
+                MenuOp(R.id.bottom_search, "搜索") { SearchPageFragment.newInstance() },
+                MenuOp(R.id.bottom_collect, "收藏") { MineCollectFragment.newInstance() },
+                MenuOp(R.id.bottom_forum, "论坛") { ForumHomeFragment.newInstance() },
+                MenuOp(R.id.bottom_setting, "设置") { SettingFragment() }
+            )
+        }
+
+        fun byId(id: Int): MenuOp? = (Ops + BottomOps).find { it.id == id }
+    }
 }

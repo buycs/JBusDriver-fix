@@ -32,7 +32,6 @@ import me.jbusdriver.mvp.bean.convertDBItem
 import me.jbusdriver.mvp.model.CollectModel
 import me.jbusdriver.mvp.presenter.ActressCollectPresenterImpl
 import me.jbusdriver.ui.activity.MovieListActivity
-import me.jbusdriver.ui.data.AppConfiguration
 import me.jbusdriver.ui.data.contextMenu.LinkMenu
 import me.jbusdriver.ui.holder.CollectDirEditHolder
 import java.util.*
@@ -123,23 +122,21 @@ class ActressCollectFragment :
                 (this@ActressCollectFragment.adapter.getData().getOrNull(position)?.linkBean)?.let { act ->
                     val action = LinkMenu.actressActions.toMutableMap()
                     action.remove("收藏")
-                    if (AppConfiguration.enableCategory) {
-                        val category = CategoryService.getById(act.categoryId)
-                        if (category != null) {
-                            val all = mBasePresenter?.collectGroupMap?.keys ?: emptyList<Category>()
-                            val last = all - category
-                            if (last.isNotEmpty()) {
-                                action.put("移到分类...") { link ->
-                                    MaterialDialog.Builder(viewContext).title("选择目录")
-                                        .items(last.map { it.name })
-                                        .itemsCallbackSingleChoice(-1) { _, _, w, _ ->
-                                            last.getOrNull(w)?.let {
-                                                mBasePresenter?.setCategory(link, it)
-                                                mBasePresenter?.onRefresh()
-                                            }
-                                            return@itemsCallbackSingleChoice true
-                                        }.show()
-                                }
+                    val category = CategoryService.getById(act.categoryId)
+                    if (category != null) {
+                        val all = mBasePresenter?.collectGroupMap?.keys ?: emptyList<Category>()
+                        val last = all - category
+                        if (last.isNotEmpty()) {
+                            action.put("移到分类...") { link ->
+                                MaterialDialog.Builder(viewContext).title("选择目录")
+                                    .items(last.map { it.name })
+                                    .itemsCallbackSingleChoice(-1) { _, _, w, _ ->
+                                        last.getOrNull(w)?.let {
+                                            mBasePresenter?.setCategory(link, it)
+                                            mBasePresenter?.onRefresh()
+                                        }
+                                        return@itemsCallbackSingleChoice true
+                                    }.show()
                             }
                         }
                     }
@@ -218,9 +215,7 @@ class ActressCollectFragment :
             p.adapterDelegate.needInjectType.clear()
         }
         super.showContents(data)
-        if (AppConfiguration.enableCategory) {
-            adapter.expand(0)
-        }
+        if (adapter.data.isNotEmpty()) adapter.expand(0)
     }
 
     companion object {

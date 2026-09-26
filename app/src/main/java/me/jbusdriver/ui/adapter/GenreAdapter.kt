@@ -12,7 +12,6 @@ import me.jbusdriver.mvp.bean.convertDBItem
 import me.jbusdriver.mvp.bean.des
 import me.jbusdriver.mvp.model.CollectModel
 import me.jbusdriver.ui.activity.MovieListActivity
-import me.jbusdriver.ui.data.AppConfiguration
 import me.jbusdriver.ui.data.contextMenu.LinkMenu
 
 /**
@@ -42,11 +41,9 @@ open class GenreAdapter : BaseQuickAdapter<Genre, BaseViewHolder>(R.layout.layou
                 val action = (if (CollectModel.has((item as ILink).convertDBItem())) LinkMenu.linkActions.minus("收藏")
                 else LinkMenu.linkActions.minus("取消收藏")).toMutableMap()
 
-                if (AppConfiguration.enableCategory) {
-                    val ac = action.remove("收藏")
-                    if (ac != null) {
-                        action["收藏到分类..."] = ac
-                    }
+                val ac = action.remove("收藏")
+                if (ac != null) {
+                    action["收藏到分类..."] = ac
                 }
 
                 MaterialDialog.Builder(view.context).title(item.name).content(item.des)

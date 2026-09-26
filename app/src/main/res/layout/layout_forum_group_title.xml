@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/tv_forum_group_title"
-    style="@style/ForumSectionTitle" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- 分组之间用一条横线隔开: 顶部轮播/热帖 与第一个分组之间也算「之间」, 所以线挂在标题上。
+         左右各缩 16dp 与标题文字对齐, 通栏的线在浅底上像屏幕边缘的毛刺。 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/forum_divider" />
+
+    <TextView
+        android:id="@+id/tv_forum_group_title"
+        style="@style/ForumSectionTitle" />
+</LinearLayout>

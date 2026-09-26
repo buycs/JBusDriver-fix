@@ -8,7 +8,6 @@ import me.jbusdriver.db.service.CategoryService
 import me.jbusdriver.db.service.LinkService
 import me.jbusdriver.mvp.bean.ActressDBType
 import me.jbusdriver.mvp.bean.MovieDBType
-import me.jbusdriver.ui.data.AppConfiguration
 
 /**
  * Created by Administrator on 2018/2/13.
@@ -44,21 +43,19 @@ object CollectModel {
     fun update(data: LinkItem) = LinkService.update(data)
 
     fun addToCollectForCategory(data: LinkItem, callBack: Boolean.() -> Unit = {}) {
-        if (AppConfiguration.enableCategory) {
-            val cs = CategoryService.queryCategoryTreeLike(getCollectType(data))
-            if (cs.size > 1) {
-                JBusManager.manager.lastOrNull()?.get()?.let {
-                    MaterialDialog.Builder(it).title("选择添加的分类")
-                        .items(cs.map { it.name })
-                        .itemsCallbackSingleChoice(0) { _, _, i, _ ->
-                            data.categoryId = cs.getOrNull(i)?.id ?: -1
-                            callBack.invoke(addToCollect(data))
-                            return@itemsCallbackSingleChoice true
-                        }
-                        .positiveText("添加")
-                        .show()
-                    return
-                }
+        val cs = CategoryService.queryCategoryTreeLike(getCollectType(data))
+        if (cs.size > 1) {
+            JBusManager.manager.lastOrNull()?.get()?.let {
+                MaterialDialog.Builder(it).title("选择添加的分类")
+                    .items(cs.map { it.name })
+                    .itemsCallbackSingleChoice(0) { _, _, i, _ ->
+                        data.categoryId = cs.getOrNull(i)?.id ?: -1
+                        callBack.invoke(addToCollect(data))
+                        return@itemsCallbackSingleChoice true
+                    }
+                    .positiveText("添加")
+                    .show()
+                return
             }
         }
         callBack.invoke(addToCollect(data))

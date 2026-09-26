@@ -14,9 +14,6 @@ import me.jbusdriver.common.bean.db.LinkCategory
 const val FORUM_SITE_HOST = "https://www.javbus.com"
 const val FORUM_HOME_URL = "$FORUM_SITE_HOST/forum/"
 
-/** 首頁頁簽缺「熱門」那一栏时的兜底数据源 */
-const val FORUM_GUIDE_HOT_URL = "${FORUM_HOME_URL}forum.php?mod=guide&view=hot"
-
 data class ForumPost(val name: String, val image: String, override val link: String) : ILink {
     @Transient
     override var categoryId: Int = LinkCategory.id ?: 10
@@ -75,7 +72,12 @@ data class ForumThreadList(
     val threads: List<ForumThreadSummary>,
     val hasNext: Boolean = false,
     val nextUrl: String = "",
-    val pageText: String = ""
+    val pageText: String = "",
+    /** 板塊页顶部展示区: 最新主題/精選內容/精選主題三栏, 内容内嵌在列表页 HTML 里 */
+    val hotTabs: List<ForumHotTab> = emptyList(),
+    /** 排序行(最新/熱門/熱帖/精華)与主题分类行(全部/日本/韓國...) */
+    val sortOptions: List<ForumOption> = emptyList(),
+    val filterOptions: List<ForumOption> = emptyList()
 )
 
 /**
@@ -92,6 +94,12 @@ data class ForumSlide(val title: String, val image: String, val link: String)
 data class ForumHotItem(val title: String, val link: String)
 
 /**
+ * 站点顶栏里一个可点的筛选/排序项。selected 的取法两行不一样:
+ * 分类行站点把当前项标在 li 的 class 上, 排序行不标, 只能拿跳转地址跟本页地址比。
+ */
+data class ForumOption(val label: String, val url: String, val selected: Boolean = false)
+
+/**
  * Discuz 里 tid 才是帖子的唯一键: 同一个帖在首页不同区块里的 href 可能带不同的额外参数,
  * 用整条 url 去重会把同帖留下两份。tid 取不到时退回 url, 至少不会把所有空值并成一条。
  */
@@ -104,7 +112,5 @@ data class ForumHotTab(val name: String, val items: List<ForumHotItem>)
 data class ForumHome(
     val slides: List<ForumSlide>,
     val hotTabs: List<ForumHotTab>,
-    val groups: List<ForumBoardGroup>,
-    /** 站點右側欄「精選內容」那一块, 站方人工挑的, 首页页签里没有, 由上层并进「熱門主題」 */
-    val featured: List<ForumHotItem> = emptyList()
+    val groups: List<ForumBoardGroup>
 )

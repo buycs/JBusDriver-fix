@@ -20,8 +20,21 @@ private val NOISE_URL_PARTS = listOf(
     "/static/", "/template/", "/ads/", "noavatar", "nologin", "image/common"
 )
 
-/** 首頁右側欄的站點標題, 站上是繁體, 比对时按原文精确匹配 */
-private const val FEATURED_LABEL = "精選內容"
+/** 站点页签条里没有「熱門主題」这一栏, 标题由本站写死 */
+private const val HOT_LABEL = "熱門主題"
+
+/**
+ * 首页热帖四栏的取数口径, 站方把它们全写进了首页模板, 一律认 diy id:
+ * 「熱門主題」和「精選內容」是右侧栏的两个框, 后三个页签各有自己的面板。
+ * （biaoqicn2 是左侧轮播那块区域, 别混进来）
+ */
+private const val HOT_PANEL_ID = "biaoqicn_b_diy9"
+private const val FEATURED_PANEL_ID = "biaoqicn_b_diy7"
+private val HOT_TAB_PANEL_IDS = mapOf(
+    "最新主題" to "biaoqicn3",
+    "最新回復" to "biaoqicn4",
+    "熱點話題" to "biaoqicn5"
+)
 
 fun parseForumThread(html: String, baseUrl: String): ForumThreadPost {
     val doc = Jsoup.parse(html, baseUrl)
@@ -85,20 +98,59 @@ fun parseForumThreadList(html: String, baseUrl: String): ForumThreadList {
     }
 
     val (hasNext, nextUrl) = nextPage(doc)
-    return ForumThreadList(title, threads, hasNext, nextUrl, pageTextOf(doc))
+    return ForumThreadList(
+        title, threads, hasNext, nextUrl, pageTextOf(doc),
+        boardHotTabsOf(doc), sortOptionsOf(doc, baseUrl), filterOptionsOf(doc)
+    )
 }
 
+/** 板塊页顶部三个信息框的容器 id, 名字与站点自己的页头文案一致 */
+private val BOARD_TAB_PANELS = listOf(
+    "最新主題" to "biaoqicn_b_diy6",
+    "精選內容" to "biaoqicn_b_diy8",
+    "精選主題" to "biaoqicn_b_diy9"
+)
+
+/** 某个框空着就整栏不显示, 站点在不同板塊给的框不完全一样 */
+private fun boardHotTabsOf(doc: Element): List<ForumHotTab> =
+    BOARD_TAB_PANELS.mapNotNull { (name, id) ->
+        itemsIn(doc.getElementById(id)).takeIf { it.isNotEmpty() }?.let { ForumHotTab(name, it) }
+    }
+
 /**
- * 板块首页的 DOM 没在已登录环境下取到过, 所以这里不赌具体容器:
- * 任意 Discuz 页面(板块首页/導讀/帖子列表)都带这几个链接, 按 href 特征摘出来去重即可。
+ * 排序行（最新/熱門/熱帖/精華）站点不标当前项, 只能拿跳转地址和本页地址比。
+ * 翻页会让本页地址多一个 page 参数, 比之前两边都去掉。
  */
+private fun sortOptionsOf(doc: Element, baseUrl: String): List<ForumOption> {
+    val current = stripPage(baseUrl)
+    return doc.select("#threadlist div.tf a[href]").mapNotNull { a ->
+        val url = a.absUrl("href")
+        val label = a.text().trim()
+        if (url.isBlank() || label.isBlank()) return@mapNotNull null
+        ForumOption(label, url, stripPage(url) == current)
+    }
+}
+
+/** 分类筛选: 当前项由站点标在 li 的 class a 上; 条数在链接内的 span.num 里, 不能留在标签上 */
+private fun filterOptionsOf(doc: Element): List<ForumOption> =
+    doc.select("#thread_types li a[href]").mapNotNull { a ->
+        val li = a.parent() ?: return@mapNotNull null
+        val url = a.absUrl("href")
+        val label = a.text().trim().removeSuffix(a.selectFirst("span.num")?.text()?.trim().orEmpty()).trim()
+        if (url.isBlank() || label.isBlank()) return@mapNotNull null
+        ForumOption(label, url, li.hasClass("a"))
+    }
+
+private fun stripPage(url: String): String =
+    url.substringBefore('#').replace(Regex("[&?]page=[0-9]+"), "")
+
 /**
  * 論壇首頁: 左輪播 + 右熱帖頁簽 + 分組板塊。
- * 站點把三個區塊全寫在首頁 HTML 里, 頁簽切換只是 display:none, 所以一次請求就夠。
+ * 站點把這幾個區塊全寫在首頁 HTML 里, 頁簽切換只是 display:none, 所以一次請求就夠。
  */
 fun parseForumHome(html: String, baseUrl: String): ForumHome {
     val doc = Jsoup.parse(html, baseUrl)
-    return ForumHome(slidesOf(doc), hotTabsOf(doc), boardGroupsOf(doc), featuredOf(doc))
+    return ForumHome(slidesOf(doc), hotTabsOf(doc), boardGroupsOf(doc))
 }
 
 private fun slidesOf(doc: Element): List<ForumSlide> =
@@ -117,36 +169,40 @@ private fun slidesOf(doc: Element): List<ForumSlide> =
         )
     }
 
-private fun hotTabsOf(doc: Element): List<ForumHotTab> =
-    doc.select("div.new4_list_top li").mapIndexedNotNull { i, li ->
+/**
+ * 站点的页签条只有三栏（最新主題/最新回復/熱點話題, 面板依次是 biaoqicn3/4/5）,
+ * 「熱門主題」不是站点页签, 它的数据在右侧栏, 所以这一栏由本站拼出来放最前。
+ * 认不出名字的页签宁可少显示一个, 也别按位置去凑——站点哪天加栏, 位置就会整体错位。
+ */
+private fun hotTabsOf(doc: Element): List<ForumHotTab> {
+    val siteTabs = doc.select("div.new4_list_top li").mapNotNull { li ->
         val name = li.text().trim()
-        if (name.isBlank()) return@mapIndexedNotNull null
-        ForumHotTab(name, hotItemsOf(doc.getElementById("con_NewOne_${i + 1}")))
+        val panelId = HOT_TAB_PANEL_IDS[name] ?: return@mapNotNull null
+        ForumHotTab(name, itemsIn(doc.getElementById(panelId)))
     }
-
-private fun hotItemsOf(panel: Element?): List<ForumHotItem> {
-    panel ?: return emptyList()
-    return panel.select("h3").mapNotNull { h ->
-        val link = h.selectFirst("a[href*=viewthread]") ?: return@mapNotNull null
-        val url = link.absUrl("href")
-        if (url.isBlank()) return@mapNotNull null
-        val title = link.attr("title").trim().ifBlank { link.text().trim() }
-        if (title.isBlank()) return@mapNotNull null
-        ForumHotItem(title, url)
-    }
+    return (listOf(ForumHotTab(HOT_LABEL, hotTabItemsOf(doc))) + siteTabs).distinctBy { it.name }
 }
 
-/**
- * 側欄的「精選內容」不在頁簽里, 但站方是人工挑的, 所以单独摘出来给上层并进「熱門主題」。
- * 区块都写成 h2.main-right-tit > span 标题 + 正文, 所以按标题认, 不认 diy 的 id（那是模板随机串）。
- */
-private fun featuredOf(doc: Element): List<ForumHotItem> = sidebarItemsOf(doc, FEATURED_LABEL)
-
-private fun sidebarItemsOf(doc: Element, label: String): List<ForumHotItem> =
-    doc.select("div.main-right-box")
-        .filter { it.selectFirst("h2.main-right-tit > span")?.text()?.trim() == label }
-        .flatMap { box -> box.select("dt > a[href*=viewthread]").mapNotNull { hotItemOf(it) } }
+/** 熱門主題栏 = 站点自己的熱門主題框在前, 站方人工挑的精選內容补在后面, 同一条帖子不重复出现 */
+private fun hotTabItemsOf(doc: Element): List<ForumHotItem> =
+    (itemsIn(doc.getElementById(HOT_PANEL_ID)) + itemsIn(doc.getElementById(FEATURED_PANEL_ID)))
         .distinctBy { forumTidOf(it.link) }
+
+/**
+ * 这些框的条目结构各不相同, 每个容器只命中其中一种:
+ * 首页页签面板是 h3.biaoqicn_listN > a, 首頁熱門主題框是 li > p.comment-post > a,
+ * 首頁精選內容框是 dl > dt > a, 板塊页最新主題框是 ul.biaoqicn_bjctj > li > a(带 rank 序号),
+ * 板塊页精選內容框是 div.main-right-kuaixu-txt > a(同一条的封面图另有一个没文字的链接)。
+ * 一条帖子可能带三个链接(封面图/标题/摘要), 只取有标题的那个, 剩下的靠 tid 去重。
+ */
+private fun itemsIn(container: Element?): List<ForumHotItem> {
+    container ?: return emptyList()
+    val links = container.select(
+        "h3 a[href*=viewthread], dt > a[href*=viewthread], li p.comment-post > a[href*=viewthread], " +
+            "ul.biaoqicn_bjctj > li > a[href*=viewthread], div.main-right-kuaixu-txt > a[href*=viewthread]"
+    )
+    return links.mapNotNull { hotItemOf(it) }.distinctBy { forumTidOf(it.link) }
+}
 
 private fun hotItemOf(link: Element): ForumHotItem? {
     val url = link.absUrl("href")

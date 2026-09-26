@@ -18,12 +18,122 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_threads"
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:scrollbars="vertical" />
+            android:layout_height="match_parent">
+
+            <!-- 顶部展示区和筛选/排序条跟着帖子列表一起上滑收起。elevation 给 0: 默认高度的阴影会在列表上压出一道灰边 -->
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/app_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                app:elevation="0dp">
+
+                <!-- 顶部信息展示区: 最新主題/精選內容/精選主題三栏手动切, 样式与首页右侧热帖框一致 -->
+                <LinearLayout
+                    android:id="@+id/ll_board_hot"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/bg_forum_hot"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    app:layout_scrollFlags="scroll">
+
+                    <LinearLayout
+                        android:id="@+id/ll_board_tabs"
+                        android:layout_width="match_parent"
+                        android:layout_height="28dp"
+                        android:orientation="horizontal"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/forum_divider" />
+
+                    <!-- 窗口高 = 单条 18dp x 5 = 90dp, 和 layout_forum_hot_item.xml 的高度对齐; 其余的上下滑动看 -->
+                    <ScrollView
+                        android:id="@+id/sv_board_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="90dp"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/ll_board_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </ScrollView>
+                </LinearLayout>
+
+                <!-- 站点列表页上方的两行: 上排是主题分类(带帖子数, 一屏放不下要横滑), 下排是排序 -->
+                <LinearLayout
+                    android:id="@+id/ll_board_bars"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/bg_forum_hot"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    app:layout_scrollFlags="scroll">
+
+                    <HorizontalScrollView
+                        android:id="@+id/hsv_board_filters"
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/ll_board_filters"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp" />
+                    </HorizontalScrollView>
+
+                    <View
+                        android:id="@+id/v_board_divider"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/forum_divider" />
+
+                    <HorizontalScrollView
+                        android:id="@+id/hsv_board_sorts"
+                        android:layout_width="match_parent"
+                        android:layout_height="28dp"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/ll_board_sorts"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp" />
+                    </HorizontalScrollView>
+                </LinearLayout>
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/sr_refresh"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_threads"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:scrollbars="vertical" />
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
         <ProgressBar
             android:id="@+id/pb_loading"

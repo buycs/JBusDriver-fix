@@ -12,7 +12,6 @@ public class C {
         public static final int WEEK = ACache.TIME_DAY * 7; //缓存的固定时间
 
         public static final String ANNOUNCE_URL = "announceUrl"; //app api地址
-        public static final String ANNOUNCE_VALUE = "announce_value"; // api 值
         public static final String IMG_HOSTS = "img_hosts"; //bus 地址
 
     }

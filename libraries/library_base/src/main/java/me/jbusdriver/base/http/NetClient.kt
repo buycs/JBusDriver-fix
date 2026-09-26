@@ -104,7 +104,8 @@ object NetClient {
     }
 
     fun getRetrofit(
-        baseUrl: String = "https://raw.githubusercontent.com/",
+        // 默认值跟着版本信息源走: raw.githubusercontent.com 实测直连超时, 别再用它
+        baseUrl: String = "https://cdn.jsdelivr.net/",
         handleJson: Boolean = false,
         client: OkHttpClient = okHttpClient
     ): Retrofit =

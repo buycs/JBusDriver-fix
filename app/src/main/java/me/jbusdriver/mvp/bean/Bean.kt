@@ -1,5 +1,6 @@
 package me.jbusdriver.mvp.bean
 
+import com.google.gson.annotations.SerializedName
 import me.jbusdriver.base.toJsonString
 import me.jbusdriver.base.urlPath
 import me.jbusdriver.common.bean.ICollectCategory
@@ -87,7 +88,11 @@ data class SearchLink(val type: SearchType, var query: String) : ILink {
 }
 
 
-data class UpdateBean(val versionCode: Int, val versionName: String, val url: String, val desc: String)
-data class NoticeBean(val id: Int, val content: String? = null)
+/** 远端 properties.json 里跟版本有关的三个字段, 下载地址固定跳 releases 页 */
+data class UpdateBean(
+    @SerializedName("latest_version_code") val versionCode: Int = 0,
+    @SerializedName("latest_version") val versionName: String? = null,
+    @SerializedName("changelog") val changelog: String? = null
+)
 
 

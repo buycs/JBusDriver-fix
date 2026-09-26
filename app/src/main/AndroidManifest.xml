@@ -55,7 +55,6 @@
             android:launchMode="singleTop" />
         <activity android:name="me.jbusdriver.ui.activity.SettingActivity" />
         <activity android:name="me.jbusdriver.ui.activity.ForumThreadActivity" />
-        <activity android:name="me.jbusdriver.ui.activity.ForumBoardActivity" />
         <activity android:name="me.jbusdriver.ui.activity.ForumThreadListActivity" />
 
         <service

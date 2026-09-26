@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--设置页一行: 标题 + 当前值, 点开的选项由代码弹, 行内不放控件-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/material_48dp"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/material_16dp"
+    android:paddingTop="@dimen/material_8dp"
+    android:paddingEnd="@dimen/material_16dp"
+    android:paddingBottom="@dimen/material_8dp">
+
+    <TextView
+        android:id="@+id/tv_setting_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="16sp"
+        tools:text="UI交互样式" />
+
+    <TextView
+        android:id="@+id/tv_setting_summary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="12sp"
+        tools:text="当前：侧边样式" />
+</LinearLayout>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--设置页带开关的一行: 整行可点, 点哪都切开关-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/material_48dp"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/material_16dp"
+    android:paddingTop="@dimen/material_8dp"
+    android:paddingEnd="@dimen/material_16dp"
+    android:paddingBottom="@dimen/material_8dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_setting_switch_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="16sp"
+            tools:text="最近任务隐藏" />
+
+        <TextView
+            android:id="@+id/tv_setting_switch_summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="12sp"
+            tools:text="最近任务列表不显示本应用" />
+    </LinearLayout>
+
+    <Switch
+        android:id="@+id/sw_setting_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/material_16dp" />
+</LinearLayout>

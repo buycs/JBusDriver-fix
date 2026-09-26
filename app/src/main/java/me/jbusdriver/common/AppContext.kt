@@ -11,6 +11,7 @@ import io.reactivex.plugins.RxJavaPlugins
 import me.jbusdriver.BuildConfig
 import me.jbusdriver.base.JBusManager
 import me.jbusdriver.http.JAVBusService
+import me.jbusdriver.ui.data.AppConfiguration
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -35,6 +36,9 @@ class AppContext : Application() {
         super.onCreate()
         JBusManager.setContext(this)
         JBus = this
+
+        // 主题要在第一个 Activity 起来之前定好, 否则会先闪一下浅色
+        AppConfiguration.applyThemeMode(AppConfiguration.themeMode)
 
         //LeakCanary 2.x 由 debug 变体的 ContentProvider 自动装好,无需手工 install
 

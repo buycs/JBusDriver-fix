@@ -32,6 +32,17 @@
 
         <include layout="@layout/content_main" />
 
+        <!--底部导航样式的外壳, 抽屉样式下 GONE。高度含导航栏 inset, 由 MainActivity 给内容区补 padding-->
+        <me.jbusdriver.ui.widget.BottomTabBar
+            android:id="@+id/bottom_nav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:elevation="8dp"
+            android:paddingTop="@dimen/material_6dp"
+            android:paddingBottom="@dimen/material_6dp"
+            android:visibility="gone" />
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 

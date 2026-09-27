@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 标签栏的「只有上面两个角是圆的」底。
+
+     用在搜索结果页: 它紧贴在搜索框(胶囊)下面, 顶部切圆角能跟搜索框呼应上。
+     影片/女优/收藏那几页的标签栏顶上就是页面顶, 不需要圆角, 所以只有搜索页走这个。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners
+        android:topLeftRadius="@dimen/material_16dp"
+        android:topRightRadius="@dimen/material_16dp" />
+    <solid android:color="@color/colorPrimary" />
+</shape>

@@ -17,12 +17,16 @@
              胶囊区域因此与**头像**的上下边界对齐, 而不是与人名的顶部对齐:
              · 胶囊顶部与头像顶部齐平; 头像右侧那块区域被胶囊填满;
              · 只有在头像底部之上排不下时, 才换成整行(x 回到最左)往下排。
-             人名用 match_parent + gravity=center: 左列宽度由头像决定, 所以人名正好居中在图片宽度上。 -->
+             人名用 match_parent + gravity=center: 左列宽度由头像决定, 所以人名正好居中在图片宽度上。
+             app:blockWrapGap 是换成整行后与头像下沿留的空隙, 不给就贴着。
+             头像高度不写死: 在 LinkedMovieListFragment 里按「4 行胶囊」实测出来再设,
+             所以这里只固定宽度, 高度交给代码。 -->
         <me.jbusdriver.ui.widget.BlockFlowLayout
             android:id="@+id/fl_actress_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:blockContentTop="true">
+            app:blockContentTop="true"
+            app:blockWrapGap="@dimen/material_8dp">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -52,8 +56,7 @@
                         android:id="@+id/iv_actress_avatar"
                         android:layout_width="@dimen/material_104dp"
                         android:layout_height="wrap_content"
-                        android:adjustViewBounds="true"
-                        android:scaleType="fitStart"
+                        android:scaleType="centerCrop"
                         tools:src="@mipmap/ic_launcher" />
 
                 </androidx.cardview.widget.CardView>

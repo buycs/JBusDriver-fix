@@ -56,6 +56,14 @@
         <activity android:name="me.jbusdriver.ui.activity.SettingActivity" />
         <activity android:name="me.jbusdriver.ui.activity.ForumThreadActivity" />
         <activity android:name="me.jbusdriver.ui.activity.ForumThreadListActivity" />
+        <!-- 播放页。旋转不重建: 重建会走 onDestroy → 播放器 release, 磁力那边还要重新拉一遍种子信息 -->
+        <activity
+            android:name="me.jbusdriver.ui.activity.PlayerActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize|uiMode" />
+        <!-- 在线播放页。同样不因转屏重建: 重建会把 WebView 里正在跑的解析与已验证的会话一起丢掉 -->
+        <activity
+            android:name="me.jbusdriver.ui.activity.MissavPlayActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize|uiMode" />
 
         <service
             android:name=".ui.task.LoadCollectService"

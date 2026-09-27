@@ -9,6 +9,12 @@
           默认 false, 即与整块对齐。
         -->
         <attr name="blockContentTop" format="boolean" />
+
+        <!--
+          换成整行模式(排到左侧那块下面)时, 整行第一行距左侧那块底部的空隙。
+          默认 0 = 紧贴着排。女优页给 8dp, 免得胶囊贴着头像下沿。
+        -->
+        <attr name="blockWrapGap" format="dimension" />
     </declare-styleable>
 
 </resources>

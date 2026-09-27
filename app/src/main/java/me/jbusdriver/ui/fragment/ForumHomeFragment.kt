@@ -21,6 +21,7 @@ import androidx.viewpager.widget.ViewPager
 import me.jbusdriver.R
 import me.jbusdriver.base.GlideApp
 import me.jbusdriver.base.common.BaseFragment
+import me.jbusdriver.base.dpToPx
 import me.jbusdriver.base.inflate
 import me.jbusdriver.common.toGlideUrlReferedBy
 import me.jbusdriver.databinding.FragmentForumHomeBinding
@@ -45,6 +46,9 @@ class ForumHomeFragment : BaseFragment() {
 
     private val slides = ArrayList<ForumSlide>()
     private val hotTabs = ArrayList<ForumHotTab>()
+
+    /** 轮播顶部的序号标签, 下标即 slides 的下标 */
+    private val indexViews = ArrayList<TextView>()
     private var currentTab = 0
 
     /** Fragment 会被 MainActivity 留着复用, 首次进入才自动拉一次; 之后靠下拉刷新 */
@@ -85,8 +89,70 @@ class ForumHomeFragment : BaseFragment() {
         slides.clear()
         slides.addAll(list)
         slideAdapter.notifyDataSetChanged()
+        renderIndices()
         b.vpSlides.setCurrentItem(slides.size * (LOOP_MULTIPLE / 2), false)
+        updateIndexHighlight()
         startTicker()
+    }
+
+    /**
+     * 轮播顶部的序号标签。数量跟随轮播条数, 点一下直接切过去。
+     * 只有一条时不摆 —— 没有「切换」可言。
+     */
+    private fun renderIndices() {
+        val b = binding ?: return
+        val bar = b.llSlideIndices
+        bar.removeAllViews()
+        indexViews.clear()
+        if (slides.size <= 1) {
+            bar.visibility = View.GONE
+            return
+        }
+        bar.visibility = View.VISIBLE
+        val horizontal = viewContext.dpToPx(4f)
+        val gap = viewContext.dpToPx(2f)
+        slides.indices.forEach { index ->
+            val label = TextView(bar.context).apply {
+                text = (index + 1).toString()
+                gravity = Gravity.CENTER
+                maxLines = 1
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, SLIDE_INDEX_TEXT_SP)
+                setPadding(horizontal, 0, horizontal, 0)
+                setOnClickListener { goToSlide(index) }
+            }
+            bar.addView(
+                label,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply { marginStart = gap }
+            )
+            indexViews.add(label)
+        }
+        updateIndexHighlight()
+    }
+
+    /** ViewPager 是无限循环的, 当前第几条要按 slides.size 取模 */
+    private fun updateIndexHighlight() {
+        if (indexViews.isEmpty()) return
+        val current = (binding?.vpSlides?.currentItem ?: 0) % indexViews.size
+        indexViews.forEachIndexed { i, label ->
+            val active = i == current
+            label.setBackgroundResource(
+                if (active) R.drawable.bg_slide_index_active else R.drawable.bg_slide_index
+            )
+            label.setTextColor(if (active) 0xFFFFFFFF.toInt() else 0xB3FFFFFF.toInt())
+            label.setTypeface(null, if (active) Typeface.BOLD else Typeface.NORMAL)
+        }
+    }
+
+    /** 以当前所在的那一圈为基准只挪 index 步, 免得从第 1 条点第 2 条要绕回去 */
+    private fun goToSlide(index: Int) {
+        val b = binding ?: return
+        val size = slides.size
+        if (size <= 0) return
+        val current = b.vpSlides.currentItem
+        b.vpSlides.currentItem = current - current % size + index
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
@@ -99,6 +165,7 @@ class ForumHomeFragment : BaseFragment() {
         b.vpSlides.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             // 手动翻页后把自动播放往后推, 不然刚翻开就被下一条顶走
             override fun onPageSelected(position: Int) {
+                updateIndexHighlight()
                 startTicker()
             }
         })
@@ -299,6 +366,8 @@ class ForumHomeFragment : BaseFragment() {
         private const val TAB_TEXT_MIN_SP = 7
         /** 轮播范围复制的份数: 取中段起翻, 前后各留一半, 一次会话内翻不到头 */
         private const val LOOP_MULTIPLE = 1000
+        /** 顶部序号标签的字号: 轮播只有 44% 屏宽, 号多了要排得下 */
+        private const val SLIDE_INDEX_TEXT_SP = 10f
 
         fun newInstance() = ForumHomeFragment()
     }

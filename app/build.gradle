@@ -12,8 +12,8 @@ android {
         targetSdk libs.versions.targetSdk.get().toInteger()
         // 自编号: code 是本仓库自己的序列, 起点跨过上游那个 369/623 的号段以免覆盖安装被判降级;
         // 发版时这里和 app/src/main/assets/properties.json 一起改, tag 打 v<versionName>
-        versionCode 631
-        versionName "1.3.8"
+        versionCode 632
+        versionName "1.3.9"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
         manifestPlaceholders = [UMENG_KEY: "58e8ecaa7666134a5a001740",
@@ -36,6 +36,22 @@ android {
 
     androidResources {
         additionalParameters "--no-version-vectors"
+    }
+
+    // 「兼容版」单包：**不拆 ABI**（一个包覆盖 arm64-v8a / armeabi-v7a / x86_64），
+    // 但把 .so 压缩进 APK。实测 release 从 50.46 MiB 降到 22.89 MiB，装机 38.72 MiB（原 50.46），
+    // 且用户不必自己挑架构。
+    //
+    // AGP 的 extractNativeLibs 默认值由 minSdk 决定（本项目 23 → 默认 false，即 .so 不压缩、
+    // 直接从 APK mmap）。这里显式改成 true。
+    //
+    // 为什么合包压缩是纯赚：安装时**只解压 primaryCpuAbi 那一套** .so（x86_64 设备实测 16.6 MiB），
+    // 另外两套留在 APK 里（压缩态）。省下的压缩量 > 解压出来占的那一份。
+    // （若日后改成单 ABI 分包的方案，这一条会反过来 —— 那时压缩会让装机变大，需要重新权衡。）
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 
     sourceSets {
@@ -106,6 +122,18 @@ dependencies {
 
     // leakcanary 2.x 只在 debug 生效，不再需要 1.6.2 那套 no-op + remap 写法
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
+
+    // 播放：在线流（直链 / HLS）与磁力流共用同一个 ExoPlayer 实例，见 me.jbusdriver.player.ExoPlayerImpl
+    implementation libs.media3.exoplayer
+    implementation libs.media3.exoplayer.hls
+    implementation libs.media3.ui
+
+    // 磁力在线播放的 BT 引擎（libtorrent4j）。⚠️ 必须 implementation，不能 debugImplementation ——
+    // release 包缺 libtorrent4j.so 会在 System.loadLibrary 直接崩。
+    implementation libs.libtorrent4j
+    implementation libs.libtorrent4j.android.arm64
+    implementation libs.libtorrent4j.android.arm
+    implementation libs.libtorrent4j.android.x86
 
     //components
     implementation project(':libraries:library_base')

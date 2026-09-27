@@ -30,11 +30,22 @@ abstract class TabViewPagerFragment<P : BasePresenter<V>, V : BaseView> : AppBas
      */
     protected open val tabMenuRes: Int? = null
 
+    /**
+     * 标签栏顶部要不要切圆角。
+     * 搜索结果页紧贴在搜索框(胶囊)下面, 切了才跟搜索框呼应;
+     * 影片/女优/收藏那几页的标签栏顶上就是页面顶, 保持直角。
+     */
+    protected open val roundedTabBar: Boolean = false
+
     private val tabLayout: TabLayout get() = requireView().findViewById<TabLayout>(R.id.tabLayout)
     private val vpFragment: ViewPager get() = requireView().findViewById<ViewPager>(R.id.vp_fragment)
     private var overflowButton: View? = null
 
     override fun initWidget(rootView: View) {
+        if (roundedTabBar) {
+            rootView.findViewById<View>(R.id.ll_tab_bar)
+                .setBackgroundResource(R.drawable.bg_tab_bar_rounded_top)
+        }
         initTabOverflow(rootView)
         initForViewPager()
     }

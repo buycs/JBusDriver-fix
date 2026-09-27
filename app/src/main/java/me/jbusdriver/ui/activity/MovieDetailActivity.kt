@@ -2,15 +2,14 @@ package me.jbusdriver.ui.activity
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Paint
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import androidx.core.content.res.ResourcesCompat
 import androidx.appcompat.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
@@ -158,18 +157,22 @@ class MovieDetailActivity :
         ll_movie_detail.addView(headHolder.view)
         ll_movie_detail.addView(sampleHolder.view)
         ll_movie_detail.addView(viewContext.inflate(R.layout.layout_load_magnet).apply {
-            val lookMagnet = findViewById<TextView>(R.id.tv_movie_look_magnet)
-            lookMagnet.setTextColor(
-                ResourcesCompat.getColor(
-                    resources,
-                    R.color.colorPrimaryDark,
-                    null
+            // 番号**原样**传，别把连字符换成空格：MissAV 的候选匹配要求 slug 里
+            // 成段出现完整番号（`sgsr-407`），换成 `SGSR 407` 后匹配器永远落空，
+            // 表现为「搜索页明明有结果却挑不出候选，最后报解析失败」。
+            // 磁力站点那边是模糊搜，原样传同样能出结果。详情页没给 code 时退回 URL 尾段。
+            fun movieCode(): String =
+                movie?.code?.takeIf { it.isNotBlank() } ?: url.orEmpty().urlPath
+
+            findViewById<MaterialButton>(R.id.btn_look_magnet).setOnClickListener {
+                MagnetPagerListActivity.start(
+                    this@MovieDetailActivity,
+                    movieCode(),
+                    movie?.link.orEmpty()
                 )
-            )
-            lookMagnet.paintFlags = lookMagnet.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-            setOnClickListener {
-                val code = movie?.code?.replace("-", " ") ?: url.orEmpty().urlPath
-                MagnetPagerListActivity.start(this@MovieDetailActivity, code, movie?.link.orEmpty())
+            }
+            findViewById<MaterialButton>(R.id.btn_online_play).setOnClickListener {
+                MissavPlayActivity.start(this@MovieDetailActivity, movieCode())
             }
         })
         ll_movie_detail.addView(actressHolder.view)

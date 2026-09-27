@@ -1,59 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 搜索页(底部样式的「搜索」页签)。
+
+     录入态与搜索后共用一个 ConstraintLayout, 靠搜索框的 verticalBias 切换位置:
+     · 录入态: bias=0.25 —— 上半屏是 0~50%, 它的中间就是 25%, 搜索框正好停在那儿;
+       下面接搜索历史(最多 5 行, 多的收进 + 号)。
+     · 搜索后: bias=0 贴到页面顶部, 历史让位, 结果区从搜索框下沿铺到底。
+
+     搜索框只靠 bias 定位, 所以历史条数变化不会把它顶走。 -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cl_search_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="?android:attr/colorBackground"
+    android:paddingStart="@dimen/material_16dp"
+    android:paddingEnd="@dimen/material_16dp">
 
+    <!-- 两侧圆弧的录入框; 放大镜在框内右侧, 点它等同回车搜索 -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?android:attr/colorBackground"
+        android:id="@+id/ll_search_box"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/material_48dp"
+        android:layout_marginTop="@dimen/material_8dp"
+        android:layout_marginBottom="@dimen/material_8dp"
+        android:background="@drawable/bg_search_box"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="@dimen/material_16dp"
-        android:paddingEnd="@dimen/material_8dp">
+        android:paddingEnd="@dimen/material_8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.25">
 
         <EditText
             android:id="@+id/et_search_keyword"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="@null"
             android:hint="输入关键字搜索"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1"
+            android:textColor="@color/primaryText"
+            android:textColorHint="@color/secondText"
             android:textSize="@dimen/material_16sp" />
 
-        <Button
-            android:id="@+id/btn_search"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="搜索"
-            android:textColor="@color/colorPrimary" />
-
+        <ImageView
+            android:id="@+id/iv_search_action"
+            android:layout_width="@dimen/material_24dp"
+            android:layout_height="@dimen/material_24dp"
+            android:alpha="0.45"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="搜索"
+            android:src="@drawable/ic_search_gray_24dp"
+            android:tint="@color/secondText" />
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1px"
-        android:background="@color/divider" />
+    <!-- 搜索历史: 用 ScrollView 兜住, 展开后条数再多也不会顶出屏幕 -->
+    <ScrollView
+        android:id="@+id/sv_history"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/material_8dp"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ll_search_box">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 历史词满行流式排, 一行放不下才换行; 收起时 FlowLayout 自己把超出 5 行的藏掉 -->
+            <me.jbusdriver.ui.widget.FlowLayout
+                android:id="@+id/ll_history"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- 展开/收起入口。必须放在流式区**外面** ——
+                 放进去的话它自己也会被 maxRows 藏掉, 就再也点不开了。 -->
+            <TextView
+                android:id="@+id/tv_history_toggle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:paddingTop="@dimen/material_6dp"
+                android:paddingBottom="@dimen/material_6dp"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
 
     <FrameLayout
         android:id="@+id/fl_search_result"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_marginTop="@dimen/material_8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ll_search_box" />
 
-        <TextView
-            android:id="@+id/tv_search_tip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="输入关键字后在这里显示结果"
-            android:textColor="@color/secondText"
-            android:textSize="@dimen/material_14sp" />
-
-    </FrameLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

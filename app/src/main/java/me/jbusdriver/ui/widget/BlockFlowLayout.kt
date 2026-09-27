@@ -18,6 +18,8 @@ import me.jbusdriver.R
  * (比如人名在上面、头像在下面), 用 `app:blockContentTop="true"` 改成与**内容**的上下边界对齐,
  * 这样胶囊顶部就和头像顶部齐平, 溢出时也从头像底部开始换整行。
  *
+ * 切到整行模式后第一行与那块底部的空隙用 `app:blockWrapGap` 调, 默认 0(紧贴)。
+ *
  * 为什么不能用 [FlowLayout]: FlowLayout 的每行高 = 该行最高的子项, 而左侧那块自己就是第一行里
  * 最高的那个, 于是第二行直接掉到它下面去了 —— 左侧那块右侧的区域会整片空着(实测约 680x300px)。
  *
@@ -29,13 +31,18 @@ class BlockFlowLayout @JvmOverloads constructor(
 ) : ViewGroup(context, attrs) {
 
     /** 胶囊区域与左侧那块的「内容」(最后一个子项)对齐, 而不是与整块对齐 */
-    private val alignContentTop: Boolean =
-        context.obtainStyledAttributes(attrs, R.styleable.BlockFlowLayout)
-            .let { a ->
-                val v = a.getBoolean(R.styleable.BlockFlowLayout_blockContentTop, false)
-                a.recycle()
-                v
-            }
+    private val alignContentTop: Boolean
+
+    /** 换整行模式时, 整行第一行距左侧那块底部的空隙 */
+    private val wrapGap: Int
+
+    init {
+        context.obtainStyledAttributes(attrs, R.styleable.BlockFlowLayout).let { a ->
+            alignContentTop = a.getBoolean(R.styleable.BlockFlowLayout_blockContentTop, false)
+            wrapGap = a.getDimensionPixelSize(R.styleable.BlockFlowLayout_blockWrapGap, 0)
+            a.recycle()
+        }
+    }
 
     private var contentWidth = 0
     private var contentHeight = 0
@@ -132,11 +139,14 @@ class BlockFlowLayout @JvmOverloads constructor(
                     x = 0
                     rowHeight = 0
                 }
-                if (cw > rightAvail || y + ch > regionBottom) {
-                    // 这一行会越过左侧那块(或它的内容)的底部 → 转整行模式, x 回到最左
+                if (cw > rightAvail || y + p.topMargin + child.measuredHeight > regionBottom) {
+                    // 这一行会越过左侧那块(或它的内容)的底部 → 转整行模式, x 回到最左。
+                    // 判「越界」只能算到子项的**可视底边**(topMargin + measuredHeight),
+                    // 不能把行尾的 bottomMargin 也算进去 —— 那是行与行之间的间距,
+                    // 算进去会让「正好贴着区域底部」的最后一行被误判成放不下。
                     full = true
                     rowStartX = 0
-                    y = regionBottom
+                    y = regionBottom + wrapGap
                     x = 0
                     rowHeight = 0
                 }

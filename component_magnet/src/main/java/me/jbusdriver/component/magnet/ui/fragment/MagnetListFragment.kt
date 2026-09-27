@@ -14,6 +14,7 @@ import io.reactivex.rxkotlin.subscribeBy
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.AppBaseRecycleFragment
 import me.jbusdriver.base.common.C
+import me.jbusdriver.base.ui.PlayerLauncher
 import me.jbusdriver.component.magnet.R
 import me.jbusdriver.component.magnet.mvp.MagnetListContract.MagnetListPresenter
 import me.jbusdriver.component.magnet.mvp.MagnetListContract.MagnetListView
@@ -122,12 +123,17 @@ class MagnetListFragment : AppBaseRecycleFragment<MagnetListPresenter, MagnetLis
         MaterialDialog.Builder(viewContext)
             .title(magnet.name)
             .buttonsGravity(GravityEnum.CENTER)
-            .negativeText("复制")
+            // 左「播放」/ 中「复制」/ 右「打开」, 与 JavCinema 的磁力弹窗同形态。
+            // 不再给「取消」: 三键已经把动作摆齐, 关闭点弹窗外部即可。
+            .negativeText("播放")
             .onNegative { _, _ ->
+                PlayerLauncher.open(viewContext, magnet.link, magnet.name)
+            }
+            .neutralText("复制")
+            .onNeutral { _, _ ->
                 viewContext.copy(magnet.link)
                 toast("复制成功")
             }
-            .neutralText("取消")
             .positiveText("打开")
             .onPositive { _, _ ->
                 viewContext.browse(magnet.link) {

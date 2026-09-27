@@ -1,34 +1,48 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    影片详情页的两个入口。原先是「查看磁力」一行带下划线的文字链接，现在改成按钮：
+    左侧「查看磁力」走磁力站点列表，右侧「在线播放」直接进 MissAV 播放页（用番号搜）。
+    「在线播放」用实心按钮：点开就能看，是主路径。
+
+    ⚠️ 配色必须显式指定，不能靠 MaterialButton 的默认值。
+    AppTheme 里 `<item name="colorPrimary">@color/colorAppBar</item>`，
+    而 colorAppBar 在 values-night 是 #1F1F1F —— 默认实心按钮就成了「#1F1F1F 底 + 黑字」，
+    深色档下整个按钮看不见（实测像素：底 31,31,31 / 字 0,0,0）。
+    colorPrimary 这个**颜色资源**才是品牌绿 #4CAF50，且不分档，所以两个按钮都绑它。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/material_8dp"
-    android:gravity="center"
     android:orientation="horizontal"
-    android:visibility="visible">
+    android:paddingLeft="@dimen/material_16dp"
+    android:paddingRight="@dimen/material_16dp">
 
-    <ImageView
-        android:id="@+id/iv_movie_magnet"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/material_40dp"
-        android:layout_marginRight="@dimen/material_16dp"
-        android:src="@drawable/ic_magnet"
-        android:tint="@color/colorPrimary" />
-
-
-    <TextView
-        android:id="@+id/tv_movie_look_magnet"
-        style="@style/AppTheme.TextView"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/material_40dp"
-        android:layout_alignBaseline="@id/iv_movie_magnet"
-        android:layout_toRightOf="@id/iv_movie_magnet"
-        android:gravity="center_vertical"
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_look_magnet"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:text="查看磁力"
-        android:textColor="@color/primaryText" />
+        android:textColor="@color/colorPrimary"
+        app:icon="@drawable/ic_magnet"
+        app:iconGravity="textStart"
+        app:iconTint="@color/colorPrimary"
+        app:strokeColor="@color/colorPrimary" />
 
-    <View
-        style="@style/DividerLine.Horizontal"
-        android:layout_below="@id/tv_movie_look_magnet"
-        android:layout_toRightOf="@id/iv_movie_magnet" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_online_play"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/material_8dp"
+        android:layout_weight="1"
+        android:backgroundTint="@color/colorPrimary"
+        android:text="在线播放"
+        android:textColor="@android:color/white"
+        app:icon="@drawable/ic_play_arrow_24dp"
+        app:iconGravity="textStart"
+        app:iconTint="@android:color/white" />
 
-</RelativeLayout>
+</LinearLayout>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    填充色写死白色：**依赖调用方给 tint**。
+    当前唯一用法是影片详情页的实心绿按钮（app:iconTint="@android:color/white"），
+    底色是 #4CAF50 品牌色、不分主题档，所以没问题。
+    若日后放到浅色底上，记得自己配 app:iconTint / android:tint。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M8,5v14l11,-7z" />
+</vector>

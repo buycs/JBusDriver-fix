@@ -19,14 +19,15 @@ class MineCollectFragment :
     MineCollectContract.MineCollectView {
     override fun createPresenter() = MineCollectPresenterImpl()
 
-    override val mTitles: List<String> by lazy { listOf("电影", "演员", "帖子", "链接") }
+    /** 帖子排在链接后面: mTitles 与 mFragments 按下标一一对应, 改顺序必须两边一起改 */
+    override val mTitles: List<String> by lazy { listOf("电影", "演员", "链接", "帖子") }
 
     override val mFragments: List<Fragment> by lazy {
         listOf(
             MovieCollectFragment.newInstance(),
             ActressCollectFragment.newInstance(),
-            ForumCollectFragment.newInstance(),
-            LinkCollectFragment.newInstance()
+            LinkCollectFragment.newInstance(),
+            ForumCollectFragment.newInstance()
         )
     }
 

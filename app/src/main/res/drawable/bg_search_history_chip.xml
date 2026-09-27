@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 搜索历史的小胶囊。radius 给 100dp, 会被框架按短边一半截断 = 胶囊,
+     和搜索录入框(bg_search_box)同一套做法, 框高变了也不会压不圆。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="100dp" />
+    <solid android:color="@color/gray" />
+</shape>

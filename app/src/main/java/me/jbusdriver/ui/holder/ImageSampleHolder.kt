@@ -37,19 +37,10 @@ class ImageSampleHolder(context: Context) : BaseHolder(context) {
                 )
                 imageSampleAdapter.bindToRecyclerView(rvRecycleImages)
                 rvRecycleImages.isNestedScrollingEnabled = true
-                imageSampleAdapter.setOnItemClickListener { _, v, position ->
-                    if (position < imageSampleAdapter.data.size) {
-                        val destination = arrayListOf<String>()
-                        var pos = position
-                        if (this@ImageSampleHolder::cover.isInitialized) {
-                            pos += 1
-                            destination.add(cover)
-
-                        }
-                        imageSampleAdapter.data.mapTo(destination) { if (TextUtils.isEmpty(it.image)) it.thumb else it.image }
-                        WatchLargeImageActivity.startShow(v.context, destination, pos)
-                    }
-                }
+                // 这里**不能**用 imageSampleAdapter.setOnItemClickListener:
+                // 缩略图带 style=AppTheme.Click(android:clickable=true), 自己就把点击消费掉了,
+                // 挂在条目根布局上的 OnItemClickListener 永远收不到 —— 表现就是点了没反应。
+                // 所以点击直接挂在 ImageView 上, 见 imageSampleAdapter.convert()。
             }
         } ?: error("context ref is finish")
     }
@@ -59,17 +50,31 @@ class ImageSampleHolder(context: Context) : BaseHolder(context) {
         object : BaseQuickAdapter<ImageSample, BaseViewHolder>(R.layout.layout_image_sample_item) {
             override fun convert(holder: BaseViewHolder, item: ImageSample) {
                 weakRef.get()?.apply {
-                    holder.getView<ImageView>(R.id.iv_movie_thumb)?.let {
+                    holder.getView<ImageView>(R.id.iv_movie_thumb)?.let { thumb ->
                         GlideApp.with(this).load(item.thumb.toGlideNoHostUrl)
                             .fitCenter()
                             .placeholder(R.drawable.ic_child_care_black_24dp)
                             .error(R.drawable.ic_child_care_black_24dp)
-                            .into(DrawableImageViewTarget(it))
-
+                            .into(DrawableImageViewTarget(thumb))
+                        thumb.setOnClickListener { openLargeImage(thumb, holder.layoutPosition) }
                     }
                 }
             }
         }
+
+    /** 打开大图: 有封面的话封面排第一位, 后面接全部样本图; 落点对准被点的那张 */
+    private fun openLargeImage(anchor: View, position: Int) {
+        val data = imageSampleAdapter.data
+        if (position < 0 || position >= data.size) return
+        val destination = arrayListOf<String>()
+        var pos = position
+        if (this::cover.isInitialized) {
+            pos += 1
+            destination.add(cover)
+        }
+        data.mapTo(destination) { if (TextUtils.isEmpty(it.image)) it.thumb else it.image }
+        WatchLargeImageActivity.startShow(anchor.context, destination, pos)
+    }
 
     fun init(data: List<ImageSample>) {
         //imageSamples

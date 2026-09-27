@@ -200,3 +200,27 @@ public static final int *;
     @retrofit2.http.* <methods>;
 }
 
+# ---- Media3 / ExoPlayer ----
+# media3 各构件自带 consumer 规则, 这里只压掉可选的扩展渲染器缺省告警。
+-dontwarn androidx.media3.**
+
+# ---- libtorrent4j (磁力播放的 BT 引擎) ----
+# 原生层按「类名 + 方法签名」通过 JNI 回调, 混淆后 System.loadLibrary 能过,
+# 但一建 session / 一收 alert 就 NoSuchMethodError。整体保留。
+-keep class org.libtorrent4j.** { *; }
+-keepclassmembers class org.libtorrent4j.** {
+    native <methods>;
+    public <init>(...);
+}
+-dontwarn org.libtorrent4j.**
+
+# 我们自己挂在引擎上的监听器会被 libtorrent4j 从 native 线程回调，类名与方法名不能改。
+#
+# 只有 TorrentSession 里那个匿名 AlertListener（`TorrentSession$alertListener$1`）在回调路径上，
+# 所以只保留这一个类族（`$*` 覆盖内部类）。
+# 包里的其余东西 —— MagnetDataSource / MagnetPlayback / MagnetStream / MagnetUnavailable /
+# MagnetStreamPolicyKt / MagnetPlaybackException —— 全都是 Kotlin 直接 new 或直接调，
+# 不参与 JNI，正常混淆即可，不必整包保留。
+-keep class me.jbusdriver.torrent.TorrentSession { *; }
+-keep class me.jbusdriver.torrent.TorrentSession$* { *; }
+

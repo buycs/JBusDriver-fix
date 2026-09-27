@@ -10,7 +10,9 @@ import com.umeng.commonsdk.UMConfigure
 import io.reactivex.plugins.RxJavaPlugins
 import me.jbusdriver.BuildConfig
 import me.jbusdriver.base.JBusManager
+import me.jbusdriver.base.ui.PlayerLauncher
 import me.jbusdriver.http.JAVBusService
+import me.jbusdriver.ui.activity.PlayerActivity
 import me.jbusdriver.ui.data.AppConfiguration
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -36,6 +38,9 @@ class AppContext : Application() {
         super.onCreate()
         JBusManager.setContext(this)
         JBus = this
+
+        // 播放页在 app 模块, 磁力弹窗在 component_magnet —— 反向依赖会成环, 所以在这里注入
+        PlayerLauncher.launch = { context, url, title -> PlayerActivity.start(context, url, title) }
 
         // 主题要在第一个 Activity 起来之前定好, 否则会先闪一下浅色
         AppConfiguration.applyThemeMode(AppConfiguration.themeMode)

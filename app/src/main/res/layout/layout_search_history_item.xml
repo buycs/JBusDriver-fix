@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 一条搜索历史。满行流式排布(见 FlowLayout), 一行放不下才换行; 点了直接拿这个词去搜。
+
+     行距靠 marginEnd / marginBottom 给 —— FlowLayout 直接吃子 View 的 margin。 -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tv_search_history_word"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/material_8dp"
+    android:layout_marginBottom="@dimen/material_8dp"
+    android:background="@drawable/bg_search_history_chip"
+    android:ellipsize="end"
+    android:maxLines="1"
+    android:paddingStart="@dimen/material_12dp"
+    android:paddingTop="@dimen/material_6dp"
+    android:paddingEnd="@dimen/material_12dp"
+    android:paddingBottom="@dimen/material_6dp"
+    android:textColor="@color/secondText"
+    android:textSize="@dimen/material_14sp" />

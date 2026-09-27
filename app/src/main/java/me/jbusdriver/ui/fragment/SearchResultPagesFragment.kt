@@ -40,6 +40,9 @@ class SearchResultPagesFragment :
      */
     override val tabMenuRes: Int = R.menu.menu_tab_search
 
+    /** 结果区就贴在搜索框下面, 标签栏顶部切圆角跟搜索框的胶囊呼应 */
+    override val roundedTabBar: Boolean = true
+
     override fun onPrepareTabMenu(menu: Menu): Boolean {
         val collected = currentPageActionTarget()?.collected ?: return false
         menu.findItem(R.id.action_add_movie_collect)?.isVisible = !collected

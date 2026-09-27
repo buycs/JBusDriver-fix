@@ -7,11 +7,17 @@
     android:orientation="vertical">
 
     <!-- 标签页那一条: 左边是页签, 最右边是页面动作的三点菜单。
-         底色挪到这层, 否则三点按钮那块会露出页面底色。 -->
+         底色挪到这层, 否则三点按钮那块会露出页面底色。
+         搜索结果页会把这个条换成顶部切圆角的底(见 TabViewPagerFragment.roundedTabBar)。
+         clipToOutline 是给那个圆角用的: TabLayout 每个 tab 都带一块实心的 tabBackground,
+         它从条的最左边就开始, 会把父容器的左上圆角整个盖住(右下那角因为三点按钮是透明底才露出来)。
+         裁到轮廓里两边才对称; 底色是纯色的页面轮廓就是矩形, 裁了等于没裁。 -->
     <LinearLayout
+        android:id="@+id/ll_tab_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
+        android:clipToOutline="true"
         android:orientation="horizontal">
 
         <com.google.android.material.tabs.TabLayout

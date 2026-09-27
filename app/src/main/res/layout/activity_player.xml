@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/pv_player"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:resize_mode="fit"
+        app:show_buffering="when_playing"
+        app:use_controller="true" />
+
+    <!--
+        磁力起播前要等种子信息(上限 30s)、等第一个分片落盘, 这期间画面是全黑的。
+        不给一句话用户只会以为「点了没反应」, 所以这层提示必须在。
+    -->
+    <LinearLayout
+        android:id="@+id/ll_player_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingLeft="@dimen/material_16dp"
+        android:paddingRight="@dimen/material_16dp">
+
+        <ProgressBar
+            android:id="@+id/pb_player"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminateTint="@color/colorAccent" />
+
+        <TextView
+            android:id="@+id/tv_player_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/material_8dp"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            tools:text="正在缓冲…" />
+    </LinearLayout>
+
+</FrameLayout>

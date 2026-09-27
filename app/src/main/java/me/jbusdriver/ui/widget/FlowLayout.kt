@@ -8,7 +8,7 @@ import android.view.ViewGroup
 /**
  * 子 View 从左往右排, 一行放不下就换下一行。
  *
- * 女优页的个人信息要「胶囊一行放多个、满了换行」, 而它本身在 RecyclerView 的头部视图里,
+ * 搜索页的历史词要「一行放多个、满了才换行」, 而它挂在 ScrollView 里,
  * 再嵌一个 wrap_content 的 RecyclerView 量不到稳定高度, 所以自己排。
  */
 class FlowLayout @JvmOverloads constructor(
@@ -16,12 +16,27 @@ class FlowLayout @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : ViewGroup(context, attrs) {
 
+    /**
+     * 最多排几行, 0 = 不限。超出的子 View 直接不参与布局(等同于不可见)。
+     * 搜索历史收起时靠它把多出来的词藏掉。
+     */
+    var maxRows: Int = 0
+
+    /**
+     * 上一次测量因为 [maxRows] 被藏起来的子 View 数。
+     * 调用方据此决定要不要摆「展开」入口 —— 在 preDraw 里读, 那时测量已经跑过。
+     */
+    var overflowCount: Int = 0
+        private set
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val availWidth = MeasureSpec.getSize(widthMeasureSpec) - paddingStart - paddingEnd
         var rowWidth = 0
         var rowHeight = 0
         var widestRow = 0
         var height = paddingTop + paddingBottom
+        var rowIndex = 0
+        var overflow = 0
 
         for (i in 0 until childCount) {
             val child = getChildAt(i)
@@ -35,12 +50,20 @@ class FlowLayout @JvmOverloads constructor(
                 height += rowHeight
                 rowWidth = 0
                 rowHeight = 0
+                rowIndex++
+            }
+            // 行数到顶之后剩下的都藏起来; 注意这里不累加 rowWidth,
+            // 于是后面的子项会一直满足换行条件, 一路走到这里被 continue 掉
+            if (maxRows > 0 && rowIndex >= maxRows) {
+                overflow++
+                continue
             }
             rowWidth += childWidth
             rowHeight = maxOf(rowHeight, childHeight)
         }
         widestRow = maxOf(widestRow, rowWidth)
         height += rowHeight
+        overflowCount = overflow
 
         setMeasuredDimension(
             resolveSize(widestRow + paddingStart + paddingEnd, widthMeasureSpec),
@@ -53,6 +76,7 @@ class FlowLayout @JvmOverloads constructor(
         var x = paddingStart
         var y = paddingTop
         var rowHeight = 0
+        var rowIndex = 0
 
         for (i in 0 until childCount) {
             val child = getChildAt(i)
@@ -64,7 +88,9 @@ class FlowLayout @JvmOverloads constructor(
                 x = paddingStart
                 y += rowHeight
                 rowHeight = 0
+                rowIndex++
             }
+            if (maxRows > 0 && rowIndex >= maxRows) continue
             val childLeft = x + params.leftMargin
             val childTop = y + params.topMargin
             child.layout(

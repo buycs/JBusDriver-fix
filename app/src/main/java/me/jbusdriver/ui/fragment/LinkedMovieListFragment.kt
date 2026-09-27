@@ -155,6 +155,27 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
                 //title
                 this.findViewById<TextView>(R.id.tv_attr_title).text = data.title
 
+                val horizontal = viewContext.dpToPx(12f)
+                val vertical = viewContext.dpToPx(5f)
+                val rowGap = viewContext.dpToPx(2f)
+
+                // 头像高度 = 4 行胶囊。先用一模一样的样式量一个胶囊出来当行高标尺 ——
+                // 字号/padding 必须和下面真正加进去的胶囊保持一致, 否则算出来的高度对不上。
+                val probe = generateTextView().apply {
+                    text = "样本"
+                    setBackgroundResource(R.drawable.bg_actress_info_capsule)
+                    setPadding(horizontal, vertical, horizontal, vertical)
+                }
+                probe.measure(
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                )
+                this.findViewById<ImageView>(R.id.iv_actress_avatar).let { avatar ->
+                    avatar.layoutParams = avatar.layoutParams.apply {
+                        height = AVATAR_ROWS * probe.measuredHeight + (AVATAR_ROWS - 1) * rowGap
+                    }
+                }
+
                 // 胶囊交给 BlockFlowLayout 排队: 先在头像右侧那块区域里排, 排不下才换整行
                 val flow = this.findViewById<BlockFlowLayout>(R.id.fl_actress_info)
                 data.info.forEach {
@@ -162,8 +183,6 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
                         text = it
                         setTextColor(R.color.primaryText.toColorInt())
                         setBackgroundResource(R.drawable.bg_actress_info_capsule)
-                        val horizontal = viewContext.dpToPx(12f)
-                        val vertical = viewContext.dpToPx(5f)
                         setPadding(horizontal, vertical, horizontal, vertical)
                         layoutParams = ViewGroup.MarginLayoutParams(
                             ViewGroup.MarginLayoutParams.WRAP_CONTENT,
@@ -172,7 +191,7 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
                             rightMargin = viewContext.dpToPx(6f)
                             // 行距用 bottomMargin 而不是 topMargin: 这样第一行顶部正好贴着
                             // 头像顶部(与图片顶部齐平), 间距只落在行与行之间
-                            bottomMargin = viewContext.dpToPx(2f)
+                            bottomMargin = rowGap
                         }
                     })
                 }
@@ -225,6 +244,9 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
 
     companion
     object {
+        /** 女优页头像高度按「几行胶囊」算 —— 4 行正好把头像右侧填满 */
+        private const val AVATAR_ROWS = 4
+
         //电影列表,演员,链接,搜索入口
         fun newInstance(link: ILink) = LinkedMovieListFragment().apply {
             arguments = Bundle().apply {

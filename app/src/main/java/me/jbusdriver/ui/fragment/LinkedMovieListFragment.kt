@@ -23,7 +23,7 @@ import me.jbusdriver.mvp.model.CollectModel
 import me.jbusdriver.mvp.presenter.LinkAbsPresenterImpl
 import me.jbusdriver.mvp.presenter.MovieLinkPresenterImpl
 import me.jbusdriver.ui.activity.SearchResultActivity
-import me.jbusdriver.ui.widget.FlowLayout
+import me.jbusdriver.ui.widget.BlockFlowLayout
 
 
 /**
@@ -39,47 +39,52 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
     private val isSearch by lazy { link is SearchLink && activity != null && activity is SearchResultActivity }
     private val isHistory by lazy { arguments?.getBoolean(C.BundleKey.Key_2, false) ?: false }
 
+    /** 历史记录那条没有收藏这一说 */
+    private val canCollect by lazy { !isHistory || link !is PageLink }
 
     private var collectMenu: MenuItem? = null
     private var removeCollectMenu: MenuItem? = null
+
+    //region PageActionTarget: 搜索结果标签页三点菜单里的收藏
+    override val collected: Boolean?
+        get() = if (canCollect) CollectModel.has(link.convertDBItem()) else null
+
+    override fun addCollect() {
+        CollectModel.addToCollectForCategory(link.convertDBItem()) {
+            collectMenu?.isVisible = false
+            removeCollectMenu?.isVisible = true
+        }
+    }
+
+    override fun removeCollect() {
+        if (CollectModel.removeCollect(link.convertDBItem())) {
+            collectMenu?.isVisible = true
+            removeCollectMenu?.isVisible = false
+        }
+    }
+    //endregion
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        val isCollect by lazy {
-            CollectModel.has(link.convertDBItem())
+        if (!canCollect || handledByTabMenu) return
+        val isCollect = collected == true
+        collectMenu = menu.add(Menu.NONE, R.id.action_add_movie_collect, 10, "收藏")?.apply {
+            setIcon(R.drawable.ic_star_border_white_24dp)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            isVisible = !isCollect
         }
-        if (!isHistory || link !is PageLink) { //历史记录隐藏
-            collectMenu = menu.add(Menu.NONE, R.id.action_add_movie_collect, 10, "收藏")?.apply {
-                setIcon(R.drawable.ic_star_border_white_24dp)
-                setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-                isVisible = !isCollect
-            }
-            removeCollectMenu = menu.add(Menu.NONE, R.id.action_remove_movie_collect, 10, "取消收藏")?.apply {
-                setIcon(R.drawable.ic_star_white_24dp)
-                setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-                isVisible = isCollect
-            }
+        removeCollectMenu = menu.add(Menu.NONE, R.id.action_remove_movie_collect, 10, "取消收藏")?.apply {
+            setIcon(R.drawable.ic_star_white_24dp)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            isVisible = isCollect
         }
     }
 
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-        when (id) {
-            R.id.action_add_movie_collect -> {
-                //收藏
-                CollectModel.addToCollectForCategory(link.convertDBItem()) {
-                    collectMenu?.isVisible = false
-                    removeCollectMenu?.isVisible = true
-                }
-            }
-            R.id.action_remove_movie_collect -> {
-                //取消收藏
-                val res = CollectModel.removeCollect(link.convertDBItem())
-                if (res) {
-                    collectMenu?.isVisible = true
-                    removeCollectMenu?.isVisible = false
-                }
-            }
+        when (item.itemId) {
+            R.id.action_add_movie_collect -> addCollect()
+            R.id.action_remove_movie_collect -> removeCollect()
         }
         return super.onOptionsItemSelected(item)
     }
@@ -150,8 +155,8 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
                 //title
                 this.findViewById<TextView>(R.id.tv_attr_title).text = data.title
 
-                // 胶囊交给 FlowLayout 排队: 一行放得下几个放几个, 满了换行
-                val flow = this.findViewById<FlowLayout>(R.id.fl_actress_info)
+                // 胶囊交给 BlockFlowLayout 排队: 先在头像右侧那块区域里排, 排不下才换整行
+                val flow = this.findViewById<BlockFlowLayout>(R.id.fl_actress_info)
                 data.info.forEach {
                     flow.addView(generateTextView().apply {
                         text = it
@@ -165,7 +170,9 @@ class LinkedMovieListFragment : AbsMovieListFragment(), LinkListContract.LinkLis
                             ViewGroup.MarginLayoutParams.WRAP_CONTENT
                         ).apply {
                             rightMargin = viewContext.dpToPx(6f)
-                            topMargin = viewContext.dpToPx(6f)
+                            // 行距用 bottomMargin 而不是 topMargin: 这样第一行顶部正好贴着
+                            // 头像顶部(与图片顶部齐平), 间距只落在行与行之间
+                            bottomMargin = viewContext.dpToPx(2f)
                         }
                     })
                 }

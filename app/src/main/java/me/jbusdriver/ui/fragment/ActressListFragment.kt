@@ -100,11 +100,32 @@ class ActressListFragment : LinkableListFragment<ActressInfo>() {
 
     private var collectMenu: MenuItem? = null
     private var removeCollectMenu: MenuItem? = null
+
+    //region PageActionTarget: 搜索结果标签页三点菜单里的收藏
+    /** 只有搜索进来的女优才谈得上收藏, 女优页那几档列表没有「当前条目」这回事 */
+    override val collected: Boolean?
+        get() = (link as? SearchLink)?.let { CollectModel.has(it.convertDBItem()) }
+
+    override fun addCollect() {
+        CollectModel.addToCollectForCategory(link.convertDBItem()) {
+            collectMenu?.isVisible = false
+            removeCollectMenu?.isVisible = true
+        }
+    }
+
+    override fun removeCollect() {
+        if (CollectModel.removeCollect(link.convertDBItem())) {
+            collectMenu?.isVisible = true
+            removeCollectMenu?.isVisible = false
+        }
+    }
+    //endregion
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         menu.findItem(R.id.action_show_all)?.isVisible = false
         if (isSearch) {
-            val isCollect = CollectModel.has((link as SearchLink).convertDBItem())
+            val isCollect = collected == true
             collectMenu = menu.add(Menu.NONE, R.id.action_add_movie_collect, 10, "收藏")?.apply {
                 setIcon(R.drawable.ic_star_border_white_24dp)
                 setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
@@ -121,20 +142,8 @@ class ActressListFragment : LinkableListFragment<ActressInfo>() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         when (id) {
-            R.id.action_add_movie_collect -> {
-                //收藏
-                CollectModel.addToCollectForCategory(link.convertDBItem()) {
-                    collectMenu?.isVisible = false
-                    removeCollectMenu?.isVisible = true
-                }
-            }
-            R.id.action_remove_movie_collect -> {
-                //取消收藏
-                if (CollectModel.removeCollect(link.convertDBItem())) {
-                    collectMenu?.isVisible = true
-                    removeCollectMenu?.isVisible = false
-                }
-            }
+            R.id.action_add_movie_collect -> addCollect()
+            R.id.action_remove_movie_collect -> removeCollect()
         }
         return super.onOptionsItemSelected(item)
     }

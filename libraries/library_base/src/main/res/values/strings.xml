@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">library_base</string>
+    <!-- 标签页最右侧三点按钮的无障碍描述 -->
+    <string name="tab_overflow_desc">更多</string>
 </resources>

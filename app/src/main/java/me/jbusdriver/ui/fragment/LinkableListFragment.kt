@@ -18,6 +18,7 @@ import me.jbusdriver.R
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.AppBaseRecycleFragment
 import me.jbusdriver.base.mvp.bean.PageInfo
+import me.jbusdriver.base.ui.TabOverflowHost
 import me.jbusdriver.mvp.LinkListContract
 import me.jbusdriver.mvp.bean.PageChangeEvent
 import me.jbusdriver.ui.activity.SearchResultActivity
@@ -25,7 +26,8 @@ import me.jbusdriver.ui.data.AppConfiguration
 
 abstract class LinkableListFragment<T> :
     AppBaseRecycleFragment<LinkListContract.LinkListPresenter, LinkListContract.LinkListView, T>(),
-    LinkListContract.LinkListView {
+    LinkListContract.LinkListView,
+    PageActionTarget {
 
     override val layoutId: Int = R.layout.layout_swipe_recycle
 
@@ -58,34 +60,62 @@ abstract class LinkableListFragment<T> :
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.main, menu)
-        menu.getItem(0)?.let {
-            val mSearchView = MenuItemCompat.getActionView(it) as SearchView
+        // 底部样式下顶栏收起来了, SearchView 的动作视图可能没建, 别硬转
+        val searchView = menu.findItem(R.id.action_search)
+            ?.let { MenuItemCompat.getActionView(it) as? SearchView } ?: return
 
-            mSearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String?): Boolean {
-                    if (TextUtils.isEmpty(query)) toast("关键字不能为空!")
-                    gotoSearchResult(query.orEmpty())
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (TextUtils.isEmpty(query)) toast("关键字不能为空!")
+                gotoSearchResult(query.orEmpty())
 
-                    return true
-                }
+                return true
+            }
 
-                override fun onQueryTextChange(newText: String?) = false
-            })
-        }
+            override fun onQueryTextChange(newText: String?) = false
+        })
 
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu) //menu before show
-        menu.findItem(R.id.action_show_all)?.isChecked = tempSaveBundle.getBoolean(MENU_SHOW_ALL, false)
+        // 动作已经搬进标签页最右侧的三点菜单, 顶栏不再重复摆一份
+        val inTopBar = !handledByTabMenu
+        menu.findItem(R.id.action_show_all)?.apply {
+            isChecked = isShowAll
+            isVisible = inTopBar
+        }
         menu.findItem(R.id.action_jump)?.let {
-            it.isVisible = AppConfiguration.pageMode == AppConfiguration.PageMode.Page
+            it.isVisible = inTopBar && AppConfiguration.pageMode == AppConfiguration.PageMode.Page
         }
     }
+
+    /**
+     * 页面动作已经搬进标签页三点菜单的宿主(底部外壳), 顶栏不再重复摆一份。
+     * 判宿主而不是判 AppConfiguration.uiMode: MovieListActivity 这类独立 Activity
+     * 在底部样式下也照样用顶栏, 不能把它那份一起藏了。
+     */
+    protected val handledByTabMenu: Boolean
+        get() = (activity as? TabOverflowHost)?.isBottomShell == true
 
     protected open fun gotoSearchResult(query: String) {
         SearchResultActivity.start(viewContext, query)
     }
+
+    //region PageActionTarget: 标签页三点菜单的动作
+    override fun showJumpPage() {
+        mBasePresenter?.currentPageInfo?.let { showPageDialog(it) }
+    }
+
+    override fun setShowAll(showAll: Boolean) {
+        mBasePresenter?.setAll(showAll)
+        mBasePresenter?.loadData4Page(1)
+        tempSaveBundle.putBoolean(MENU_SHOW_ALL, showAll)
+    }
+
+    override val isShowAll: Boolean
+        get() = tempSaveBundle.getBoolean(MENU_SHOW_ALL, false)
+    //endregion
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle action bar item clicks here. The action bar will
@@ -96,15 +126,9 @@ abstract class LinkableListFragment<T> :
             R.id.action_show_all -> {
                 item.isChecked = !item.isChecked
                 if (item.isChecked) item.title = "已发布" else item.title = "全部电影"  /*false : 已发布的 ,true :全部*/
-                mBasePresenter?.setAll(item.isChecked)
-                mBasePresenter?.loadData4Page(1)
-                tempSaveBundle.putBoolean(MENU_SHOW_ALL, item.isChecked)
+                setShowAll(item.isChecked)
             }
-            R.id.action_jump -> {
-                mBasePresenter?.currentPageInfo?.let {
-                    showPageDialog(it)
-                }
-            }
+            R.id.action_jump -> showJumpPage()
         }
         return super.onOptionsItemSelected(item)
     }

@@ -1,7 +1,7 @@
 package me.jbusdriver.mvp.bean
 
 import me.jbusdriver.common.bean.ILink
-import me.jbusdriver.common.bean.db.LinkCategory
+import me.jbusdriver.common.bean.db.ForumCategory
 
 /**
  * 論壇相关的展示模型。全部只读: 论坛只做浏览, 不做回复/发帖。
@@ -15,8 +15,13 @@ const val FORUM_SITE_HOST = "https://www.javbus.com"
 const val FORUM_HOME_URL = "$FORUM_SITE_HOST/forum/"
 
 data class ForumPost(val name: String, val image: String, override val link: String) : ILink {
+    /**
+     * 帖子归到「默认帖子分类」(7), 不是链接分类(10)。
+     * convertDBItem() 里 `categoryId > 0` 这一支先命中, 所以这个默认值就是最终落库的分类 ——
+     * 写成 LinkCategory 的话, 帖子会被塞进链接分类, 帖子收藏页永远查不到。
+     */
     @Transient
-    override var categoryId: Int = LinkCategory.id ?: 10
+    override var categoryId: Int = ForumCategory.id ?: 7
 
     val tid: String
         get() = Regex("tid=(\\d+)").find(link)?.groupValues?.getOrNull(1).orEmpty()

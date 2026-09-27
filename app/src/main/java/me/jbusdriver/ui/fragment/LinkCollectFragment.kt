@@ -33,7 +33,8 @@ import me.jbusdriver.ui.holder.CollectDirEditHolder
 
 class LinkCollectFragment :
     AppBaseRecycleFragment<LinkCollectContract.LinkCollectPresenter, LinkCollectContract.LinkCollectView, CollectLinkWrapper<ILink>>(),
-    LinkCollectContract.LinkCollectView {
+    LinkCollectContract.LinkCollectView,
+    PageActionTarget {
 
     override val swipeView: SwipeRefreshLayout? by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.sr_refresh) }
     override val recycleView: RecyclerView by lazy { view!!.findViewById<RecyclerView>(R.id.rv_recycle) }
@@ -131,31 +132,35 @@ class LinkCollectFragment :
     override fun createPresenter() = LinkCollectPresenterImpl()
     private val holder by lazy { CollectDirEditHolder(viewContext, LinkCategory) }
 
+    /** 标签页三点菜单的「修改收藏目录」也走这里 */
+    override fun editCollectDir() {
+        holder.showDialogWithData(
+            mBasePresenter?.collectGroupMap?.keys?.toList()
+                ?: emptyList()
+        ) { delActionsParams, addActionsParams ->
+            if (delActionsParams.isNotEmpty()) {
+                delActionsParams.forEach {
+                    try {
+                        CategoryService.delete(it, 3) //link 数据库中默认为3 具体可以有3..6
+                    } catch (e: Exception) {
+                        toast("不能删除默认分类")
+                    }
+                }
+            }
+
+            if (addActionsParams.isNotEmpty()) {
+                addActionsParams.forEach {
+                    CategoryService.insert(it)
+                }
+            }
+            mBasePresenter?.onRefresh()
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         menu.findItem(R.id.action_collect_dir_edit)?.setOnMenuItemClickListener {
-
-            holder.showDialogWithData(
-                mBasePresenter?.collectGroupMap?.keys?.toList()
-                    ?: emptyList()
-            ) { delActionsParams, addActionsParams ->
-                if (delActionsParams.isNotEmpty()) {
-                    delActionsParams.forEach {
-                        try {
-                            CategoryService.delete(it, 3) //link 数据库中默认为3 具体可以有3..6
-                        } catch (e: Exception) {
-                            toast("不能删除默认分类")
-                        }
-                    }
-                }
-
-                if (addActionsParams.isNotEmpty()) {
-                    addActionsParams.forEach {
-                        CategoryService.insert(it)
-                    }
-                }
-                mBasePresenter?.onRefresh()
-            }
+            editCollectDir()
             true
         }
     }

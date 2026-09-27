@@ -26,6 +26,7 @@ import kotlin.math.abs
 import me.jbusdriver.R
 import me.jbusdriver.base.*
 import me.jbusdriver.base.common.AppBaseActivity
+import me.jbusdriver.base.ui.TabOverflowHost
 import me.jbusdriver.common.JBus
 import me.jbusdriver.mvp.MainContract
 import me.jbusdriver.mvp.bean.*
@@ -35,19 +36,25 @@ import me.jbusdriver.ui.data.BottomTabs
 import me.jbusdriver.ui.widget.BottomTabBar
 
 class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.MainView>(),
-    NavigationView.OnNavigationItemSelectedListener, MainContract.MainView {
+    NavigationView.OnNavigationItemSelectedListener, MainContract.MainView, TabOverflowHost {
 
     private val navigationView by lazy { findViewById<NavigationView>(R.id.nav_view) }
     private val bottomNav by lazy { findViewById<BottomTabBar>(R.id.bottom_nav) }
     private val contentMain by lazy { findViewById<View>(R.id.content_main) }
+    private val appBar by lazy { findViewById<View>(R.id.appbar) }
+    private val toolbar by lazy { findViewById<Toolbar>(R.id.toolbar) }
     /** 当前落在 content_main 里的那个页签/菜单项 id, 两套外壳共用*/
     private var selectedId = 0
     private var drawerToggle: ActionBarDrawerToggle? = null
     private var bottomMode = false
 
+    override val isBottomShell: Boolean get() = bottomMode
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) intent.putExtras(savedInstanceState)
+        // 「最近任务隐藏」: 开就隐藏、关就恢复。API 30+ 立即生效, 更低版本要重启(见 RecentsControl)
+        applyRecentsExclusion(AppConfiguration.hideRecent)
         initNavigationView()
         initBottomNav()
         applyShell()
@@ -56,7 +63,6 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
 
 
     private fun initNavigationView() {
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
         val toggle = ActionBarDrawerToggle(
@@ -121,15 +127,19 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
         /*
          * DrawerLayout 会把 WindowInsets 吃掉再按子 View 的 fitsSystemWindows 分发,
          * 底部栏这层拿不到, 所以从 android.R.id.content 上取导航栏高度补给自己。
+         * 圆角屏 / 手势导航下系统给的 bottom 可能很小甚至为 0, 最后一行字会被屏幕圆角啃掉,
+         * 所以给它一个下限; 系统本来就给够的设备不额外加高。
          */
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            bottomNav.updatePadding(bottom = bars.bottom)
+            bottomNav.updatePadding(bottom = maxOf(bars.bottom, dp(BOTTOM_BAR_MIN_INSET)))
             insets
         }
         // 底部栏高度(含刚补的 inset)定了才能给内容区留出同样的空间
         bottomNav.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> syncContentInset() }
     }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     /** 切到底部页签: 先刷高亮再换内容 */
     private fun showTab(id: Int) {
@@ -137,6 +147,32 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
         bottomNav.selectTab(id)
         switchFragment(id)
         supportActionBar?.title = tab.label
+        applyTopBar()
+    }
+
+    /**
+     * 底部样式下顶栏整条收起: 页面级动作(跳页/全部影片/修改收藏目录/收藏)都进了标签页最右侧的三点菜单,
+     * 影片页和女优页的顶栏原本只剩一个搜索入口, 而底部页签里已经有独立的搜索页, 所以不再保留;
+     * 抽屉样式下顶栏一直在。
+     */
+    private fun applyTopBar() {
+        setTopBarVisible(!bottomMode)
+    }
+
+    /**
+     * 收顶栏靠把 AppBarLayout 的高度压成 0, 不是切 visibility。
+     * content_main 挂着 appbar_scrolling_view_behavior: AppBarLayout 一旦 GONE,
+     * CoordinatorLayout 就不再给 content_main 派发依赖更新, 它的 offset 会冻在上一次的位置,
+     * 顶栏那块空白照样留在页面上。高度改 0 时依赖链不断, content_main 正常跟着上移。
+     */
+    private fun setTopBarVisible(show: Boolean) {
+        val lp = appBar.layoutParams ?: return
+        val target = if (show) ViewGroup.LayoutParams.WRAP_CONTENT else 0
+        if (lp.height != target) {
+            lp.height = target
+            appBar.layoutParams = lp
+        }
+        toolbar.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     //region 内容区下半屏横向滑动切底部页签
@@ -217,6 +253,8 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
         )
         drawerToggle?.isDrawerIndicatorEnabled = !bottomMode
         bottomNav.visibility = if (bottomMode) View.VISIBLE else View.GONE
+        // 具体某个页签要不要顶栏由 applyTopBar 决定, 这里先按外壳给个初值
+        setTopBarVisible(!bottomMode)
         syncContentInset()
     }
 
@@ -264,6 +302,7 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
         drawer.closeDrawer(GravityCompat.START)
         supportActionBar?.title = item.title
+        applyTopBar()
         return true
     }
 
@@ -282,6 +321,11 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
         ft.show(replace)
         ft.commitAllowingStateLoss()
         selectedId = itemId
+        /*
+         * 顶栏的动作菜单是按「当前可见的那个页」拼的, 而换页走的是 hide/show, 不会自己重建菜单;
+         * 不刷一次的话切到收藏页还挂着影片页的搜索图标。
+         */
+        invalidateOptionsMenu()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -296,6 +340,9 @@ class MainActivity : AppBaseActivity<MainContract.MainPresenter, MainContract.Ma
     override val layoutId = R.layout.activity_main
 
     companion object {
+        /** 圆角屏 / 手势导航下系统给的底部 inset 可能小到 0, 底栏至少留这么多, 否则最后一行字会被圆角啃掉 */
+        private const val BOTTOM_BAR_MIN_INSET = 16
+
         fun start(current: Activity) {
             current.startActivity(Intent(current, MainActivity::class.java))
         }

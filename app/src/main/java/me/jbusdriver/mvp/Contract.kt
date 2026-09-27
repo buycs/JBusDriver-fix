@@ -5,6 +5,7 @@ import me.jbusdriver.base.mvp.bean.PageInfo
 import me.jbusdriver.base.mvp.presenter.BasePresenter
 import me.jbusdriver.common.bean.ILink
 import me.jbusdriver.mvp.bean.ActressInfo
+import me.jbusdriver.mvp.bean.ForumPost
 import me.jbusdriver.mvp.bean.Genre
 import me.jbusdriver.mvp.bean.Movie
 import me.jbusdriver.mvp.presenter.BaseCollectPresenter
@@ -76,6 +77,13 @@ interface LinkCollectContract {
     interface LinkCollectView : BaseView.BaseListWithRefreshView
     interface LinkCollectPresenter : BasePresenter.BaseRefreshLoadMorePresenter<LinkCollectView>,
         BaseCollectPresenter<ILink>, BasePresenter.LazyLoaderPresenter
+}
+
+/** 收藏页的「帖子」页签。帖子和链接分开存, 所以走自己的分类树 */
+interface ForumCollectContract {
+    interface ForumCollectView : BaseView.BaseListWithRefreshView
+    interface ForumCollectPresenter : BasePresenter.BaseRefreshLoadMorePresenter<ForumCollectView>,
+        BaseCollectPresenter<ForumPost>, BasePresenter.LazyLoaderPresenter
 }
 
 interface GenrePageContract {

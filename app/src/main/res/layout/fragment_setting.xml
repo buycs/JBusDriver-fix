@@ -67,7 +67,13 @@
                 android:orientation="vertical">
 
                 <include
-                    android:id="@+id/row_collect_backup"
+                    android:id="@+id/row_export_collect"
+                    layout="@layout/layout_setting_item" />
+
+                <View style="@style/SettingRowDivider" />
+
+                <include
+                    android:id="@+id/row_import_collect"
                     layout="@layout/layout_setting_item" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>

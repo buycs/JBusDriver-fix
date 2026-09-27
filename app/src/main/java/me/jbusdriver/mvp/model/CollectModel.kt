@@ -7,6 +7,7 @@ import me.jbusdriver.db.bean.LinkItem
 import me.jbusdriver.db.service.CategoryService
 import me.jbusdriver.db.service.LinkService
 import me.jbusdriver.mvp.bean.ActressDBType
+import me.jbusdriver.mvp.bean.ForumPostDBType
 import me.jbusdriver.mvp.bean.MovieDBType
 
 /**
@@ -19,6 +20,7 @@ object CollectModel {
         return when {
             data.type == MovieDBType -> MovieDBType
             data.type == ActressDBType -> ActressDBType
+            data.type == ForumPostDBType -> ForumPostDBType
             else -> 10
         }
     }

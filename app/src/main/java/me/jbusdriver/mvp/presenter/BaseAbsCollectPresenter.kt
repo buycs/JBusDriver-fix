@@ -13,11 +13,13 @@ import me.jbusdriver.common.bean.ICollectCategory
 import me.jbusdriver.common.bean.ILink
 import me.jbusdriver.common.bean.db.ActressCategory
 import me.jbusdriver.common.bean.db.Category
+import me.jbusdriver.common.bean.db.ForumCategory
 import me.jbusdriver.common.bean.db.LinkCategory
 import me.jbusdriver.common.bean.db.MovieCategory
 import me.jbusdriver.db.service.CategoryService
 import me.jbusdriver.db.service.LinkService
 import me.jbusdriver.mvp.ActressCollectContract
+import me.jbusdriver.mvp.ForumCollectContract
 import me.jbusdriver.mvp.MovieCollectContract
 import me.jbusdriver.mvp.bean.CollectLinkWrapper
 import me.jbusdriver.mvp.bean.convertDBItem
@@ -32,6 +34,7 @@ abstract class BaseAbsCollectPresenter<V : BaseView.BaseListWithRefreshView, T :
         when {
             this is MovieCollectContract.MovieCollectPresenter -> MovieCategory
             this is ActressCollectContract.ActressCollectPresenter -> ActressCategory
+            this is ForumCollectContract.ForumCollectPresenter -> ForumCategory
             else -> LinkCategory
         }
     }

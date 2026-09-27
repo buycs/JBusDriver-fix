@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底部样式下「影片」页签最右侧三点菜单里的项。
+     跳页原本是顶栏上单摆的一个图标, 全部影片原本在顶栏的溢出菜单里, 两处都搬到这。
+     PopupMenu 不显示图标, 所以这里靠文字区分。 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_jump"
+        android:orderInCategory="2"
+        android:title="跳页" />
+
+    <item
+        android:id="@+id/action_show_all"
+        android:checkable="true"
+        android:checked="false"
+        android:orderInCategory="100"
+        android:title="全部影片" />
+
+</menu>

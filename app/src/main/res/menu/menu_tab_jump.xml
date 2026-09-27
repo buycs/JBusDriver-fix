@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底部样式下「女优」页签最右侧三点菜单里的项: 只有跳页, 女优列表没有「全部影片」那一档 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_jump"
+        android:orderInCategory="2"
+        android:title="跳页" />
+
+</menu>

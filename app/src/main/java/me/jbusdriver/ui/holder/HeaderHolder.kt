@@ -12,7 +12,10 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.BaseViewHolder
 import me.jbusdriver.R
+import me.jbusdriver.base.copy
 import me.jbusdriver.base.inflate
+import me.jbusdriver.base.toast
+import me.jbusdriver.common.JBus
 import me.jbusdriver.mvp.bean.Header
 import me.jbusdriver.mvp.bean.convertDBItem
 import me.jbusdriver.mvp.bean.des
@@ -55,6 +58,14 @@ class HeaderHolder(context: Context) : BaseHolder(context) {
                 }
                 //长按操作
                 setOnLongClickListener {
+                    // 识别码/时长/发行日期/名称在站点上就是一行短文本, 长按直接复制比弹菜单快;
+                    // 其余字段(导演/制作商等)带跳转地址、还要能收藏, 保持原来的弹菜单
+                    if (item.name in DIRECT_COPY_NAMES) {
+                        JBus.copy(item.value)
+                        toast("已复制")
+                        return@setOnLongClickListener true
+                    }
+
                     val action = LinkMenu.linkActions.filter {
                         when {
                             TextUtils.isEmpty(item.link) -> it.key == "复制"
@@ -89,6 +100,11 @@ class HeaderHolder(context: Context) : BaseHolder(context) {
             //load header
             headAdapter.setNewData(data)
         }
+    }
+
+    companion object {
+        /** 站点原文的字段名(繁体), 这几个长按直接复制 */
+        private val DIRECT_COPY_NAMES = setOf("識別碼", "長度", "發行日期", "名稱")
     }
 
 }

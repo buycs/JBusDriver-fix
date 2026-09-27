@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="BlockFlowLayout">
+        <!--
+          左侧那块本身是「标题 + 内容」两段结构时置 true (女优页就是 人名 + 头像):
+          胶囊区域改为与**内容**(那块里最后一个子项)的上下边界对齐,
+          而不是与整块的上下边界对齐 —— 这样胶囊顶部才能和头像顶部齐平。
+          默认 false, 即与整块对齐。
+        -->
+        <attr name="blockContentTop" format="boolean" />
+    </declare-styleable>
+
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 深色档的抽屉头背景。
+     浅色那份是绿色渐变, 深色下沿用会在暗色界面顶上压一大块亮绿;
+     这里压到和顶栏同级(#1F1F1F), 只留一点点起伏避免死板。
+     drawable 不能像 color 那样分档, 只能靠 drawable-night 目录覆盖。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="135"
+        android:centerColor="#252525"
+        android:endColor="#1A1A1A"
+        android:startColor="#2E2E2E"
+        android:type="linear" />
+</shape>

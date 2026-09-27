@@ -39,7 +39,8 @@ import java.util.*
 
 class ActressCollectFragment :
     AppBaseRecycleFragment<ActressCollectContract.ActressCollectPresenter, ActressCollectContract.ActressCollectView, CollectLinkWrapper<ActressInfo>>(),
-    ActressCollectContract.ActressCollectView {
+    ActressCollectContract.ActressCollectView,
+    PageActionTarget {
 
 
     override val swipeView: SwipeRefreshLayout? by lazy { view?.findViewById<SwipeRefreshLayout>(R.id.sr_refresh) }
@@ -169,32 +170,36 @@ class ActressCollectFragment :
 
     private val holder by lazy { CollectDirEditHolder(viewContext, ActressCategory) }
 
+    /** 标签页三点菜单的「修改收藏目录」也走这里 */
+    override fun editCollectDir() {
+        holder.showDialogWithData(
+            mBasePresenter?.collectGroupMap?.keys?.toList()
+                ?: emptyList()
+        ) { delActionsParams, addActionsParams ->
+            KLog.d("$delActionsParams $addActionsParams")
+            if (delActionsParams.isNotEmpty()) {
+                delActionsParams.forEach {
+                    try {
+                        CategoryService.delete(it, ActressDBType)
+                    } catch (e: Exception) {
+                        toast("不能删除默认分类")
+                    }
+                }
+            }
+
+            if (addActionsParams.isNotEmpty()) {
+                addActionsParams.forEach {
+                    CategoryService.insert(it)
+                }
+            }
+            mBasePresenter?.onRefresh()
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         menu.findItem(R.id.action_collect_dir_edit)?.setOnMenuItemClickListener {
-
-            holder.showDialogWithData(
-                mBasePresenter?.collectGroupMap?.keys?.toList()
-                    ?: emptyList()
-            ) { delActionsParams, addActionsParams ->
-                KLog.d("$delActionsParams $addActionsParams")
-                if (delActionsParams.isNotEmpty()) {
-                    delActionsParams.forEach {
-                        try {
-                            CategoryService.delete(it, ActressDBType)
-                        } catch (e: Exception) {
-                            toast("不能删除默认分类")
-                        }
-                    }
-                }
-
-                if (addActionsParams.isNotEmpty()) {
-                    addActionsParams.forEach {
-                        CategoryService.insert(it)
-                    }
-                }
-                mBasePresenter?.onRefresh()
-            }
+            editCollectDir()
             true
         }
     }

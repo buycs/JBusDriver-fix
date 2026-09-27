@@ -279,7 +279,10 @@ class ForumHomeFragment : BaseFragment() {
                 .error(R.drawable.ic_image_error)
                 .into(view.findViewById<ImageView>(R.id.iv_forum_slide))
             view.findViewById<TextView>(R.id.tv_forum_slide_title).text = slide.title
-            view.setOnClickListener { ForumThreadActivity.open(requireContext(), slide.link) }
+            // 点击挂在透明覆盖层上, 图片和标题条都不必各自处理
+            view.findViewById<View>(R.id.v_slide_click).setOnClickListener {
+                ForumThreadActivity.open(requireContext(), slide.link)
+            }
             container.addView(view)
             return view
         }

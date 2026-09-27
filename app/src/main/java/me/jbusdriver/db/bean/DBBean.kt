@@ -59,6 +59,7 @@ private fun doGet(type: Int, jsonStr: String) = when (type) {
     4 -> GSON.fromJson<Genre>(jsonStr)
     5 -> GSON.fromJson<SearchLink>(jsonStr)
     6 -> GSON.fromJson<PageLink>(jsonStr)
+    7 -> GSON.fromJson<ForumPost>(jsonStr)
     else -> error("$type : $jsonStr has no matched class ")
 }.let { data ->
     val isXyz = data.link.urlHost.isEndWithXyzHost

@@ -71,6 +71,11 @@ class ForumThreadListActivity : ForumBaseActivity() {
             }
         }
 
+        // 顶部信息展示区那一栏要能自己上下滑, 但它在 AppBarLayout 里, 手指一动顶栏的 Behavior
+        // 就会把 ACTION_MOVE 抢走, 事件到不了里面的 ScrollView。拦截逻辑放在
+        // BoardHotScrollView 自己的 onInterceptTouchEvent 里(那里是唯一来得及插旗的时机),
+        // 这里不再需要任何处理。
+
         if (url.isBlank()) {
             showError("無效的鏈接")
             return

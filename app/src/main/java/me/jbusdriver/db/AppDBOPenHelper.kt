@@ -87,7 +87,7 @@ class JBusDBOpenCallBack : SupportSQLiteOpenHelper.Callback(JBUS_DB_VERSION) {
 }
 
 
-private const val COLLECT_DB_VERSION = 1
+private const val COLLECT_DB_VERSION = 2
 
 class CollectDBCallBack : SupportSQLiteOpenHelper.Callback(COLLECT_DB_VERSION) {
 
@@ -119,6 +119,26 @@ class CollectDBCallBack : SupportSQLiteOpenHelper.Callback(COLLECT_DB_VERSION) {
 
     override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) {
         KLog.d("JBusDBOpenCallBack onUpgrade $oldVersion $newVersion")
+        // v1 -> v2: AllFirstParentDBCategoryGroup 里多了帖子分类(7)。
+        // onCreate 只在建库那一次跑, 老用户的库里没有这一行 —— 不补插的话,
+        // 帖子收藏页查不到分类树, 收藏进去也显示不出来。
+        // 逐条判存在再插, 所以重复执行是安全的。
+        AllFirstParentDBCategoryGroup.forEach { (_, category) ->
+            val id = category.id ?: return@forEach
+            val exists = db.query(
+                "SELECT ${CategoryTable.COLUMN_ID} FROM ${CategoryTable.TABLE_NAME} " +
+                        "WHERE ${CategoryTable.COLUMN_ID} = $id"
+            ).use { it.count > 0 }
+            if (exists) return@forEach
+            db.insert(CategoryTable.TABLE_NAME, SQLiteDatabase.CONFLICT_NONE, category.cv())
+            db.update(
+                CategoryTable.TABLE_NAME,
+                SQLiteDatabase.CONFLICT_NONE,
+                category.cv(),
+                CategoryTable.COLUMN_ID + " = $id",
+                null
+            )
+        }
     }
 
 }

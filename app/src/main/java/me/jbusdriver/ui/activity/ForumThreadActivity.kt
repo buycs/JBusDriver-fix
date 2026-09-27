@@ -3,6 +3,8 @@ package me.jbusdriver.ui.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,8 +14,11 @@ import me.jbusdriver.base.toast
 import me.jbusdriver.databinding.ActivityForumThreadBinding
 import me.jbusdriver.mvp.bean.FORUM_SITE_HOST
 import me.jbusdriver.mvp.bean.ForumFloor
+import me.jbusdriver.mvp.bean.ForumPost
 import me.jbusdriver.mvp.bean.ForumThreadPost
+import me.jbusdriver.mvp.bean.convertDBItem
 import me.jbusdriver.mvp.bean.parseForumThread
+import me.jbusdriver.mvp.model.CollectModel
 import me.jbusdriver.ui.adapter.ForumFloorAdapter
 
 /**
@@ -33,6 +38,11 @@ class ForumThreadActivity : ForumBaseActivity() {
     private var firstPage = 1
     private var loadedPage = 1
     private var totalPage = 1
+
+    /** 帖子标题要等正文回来才知道, 收藏时用它当条目名 */
+    private var postTitle = ""
+    private lateinit var collectMenu: MenuItem
+    private lateinit var removeCollectMenu: MenuItem
 
     private val floorAdapter by lazy {
         ForumFloorAdapter { floor, index -> showImage(floor, index) }
@@ -143,9 +153,52 @@ class ForumThreadActivity : ForumBaseActivity() {
 
     private fun showThread(post: ForumThreadPost) {
         supportActionBar?.title = post.title.ifBlank { getString(R.string.forum_thread_default) }
+        postTitle = post.title
+        // 标题到手后收藏菜单才有意义(收藏条目要用它当名字), 重建一次让图标状态跟着更新
+        invalidateOptionsMenu()
         floorAdapter.setNewData(post.floors)
         binding.rvFloors.visibility = View.VISIBLE
     }
+
+    //region 收藏
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_forum_thread, menu)
+        collectMenu = menu.findItem(R.id.action_add_forum_collect)
+        removeCollectMenu = menu.findItem(R.id.action_remove_forum_collect)
+        refreshCollectMenu()
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val post = currentPost()
+        if (post != null) {
+            when (item.itemId) {
+                R.id.action_add_forum_collect -> {
+                    CollectModel.addToCollectForCategory(post.convertDBItem())
+                    refreshCollectMenu()
+                }
+                R.id.action_remove_forum_collect -> {
+                    if (CollectModel.removeCollect(post.convertDBItem())) refreshCollectMenu()
+                }
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    /** 正文只给了标题, 图片留空 —— 收藏列表只展示标题, 用不到封面 */
+    private fun currentPost(): ForumPost? {
+        if (url.isBlank()) return null
+        return ForumPost(postTitle.ifBlank { getString(R.string.forum_thread_default) }, "", url)
+    }
+
+    private fun refreshCollectMenu() {
+        val post = currentPost() ?: return
+        if (!::collectMenu.isInitialized) return
+        val collected = CollectModel.has(post.convertDBItem())
+        collectMenu.isVisible = !collected
+        removeCollectMenu.isVisible = collected
+    }
+    //endregion
 
     private fun showImage(floor: ForumFloor, index: Int) {
         if (floor.images.isEmpty() || index < 0) return

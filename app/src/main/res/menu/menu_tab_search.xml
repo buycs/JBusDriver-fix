@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底部样式下搜索结果页最右侧三点菜单里的项。
+     原本是 LinkedMovieListFragment 往顶栏加的「收藏 / 取消收藏」两个星标,
+     搜索页顶栏收起来之后搬到这里。PopupMenu 不显示图标, 所以靠文字区分。 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_add_movie_collect"
+        android:orderInCategory="10"
+        android:title="收藏"
+        android:visible="false" />
+
+    <item
+        android:id="@+id/action_remove_movie_collect"
+        android:orderInCategory="11"
+        android:title="取消收藏"
+        android:visible="false" />
+
+</menu>

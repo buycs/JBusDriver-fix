@@ -28,6 +28,7 @@ val ILink.des: String
         is me.jbusdriver.mvp.bean.Movie -> "$code $title"
         is SearchLink -> "搜索 ${type.title} $query"
         is PageLink -> "$title 第 $page 页" /*${if (isAll) "全部" else "已有种子"}电影*/
+        is ForumPost -> "帖子 $name"
         else -> error(" $this has no matched class for des")
     }
 
@@ -38,6 +39,9 @@ const val GenreDBType = 4
 const val SearchLinkDBType = 5
 const val PageLinkDBType = 6
 
+/** 論壇帖子收藏。3..9 是 Category.kt 里预留的号段, 帖子取 7 */
+const val ForumPostDBType = 7
+
 val AllDBType by lazy {
     listOf(
         MovieDBType,
@@ -45,7 +49,8 @@ val AllDBType by lazy {
         HeaderDBType,
         GenreDBType,
         SearchLinkDBType,
-        PageLinkDBType
+        PageLinkDBType,
+        ForumPostDBType
     )
 }
 
@@ -57,11 +62,15 @@ val ILink.DBtype: Int
         is Genre -> GenreDBType
         is SearchLink -> SearchLinkDBType
         is PageLink -> PageLinkDBType
+        is ForumPost -> ForumPostDBType
         else -> error(" $this has no matched class for des")
     }
 val ILink.uniqueKey: String
     inline get() = when (this) {
         is SearchLink -> query
+        // 帖子地址都是 /forum/forum.php?mod=viewthread&tid=xxx, urlPath 取出来全一样,
+        // 必须用 tid 当键 —— 否则收藏第二个帖子会覆盖第一个
+        is ForumPost -> "forum-${tid}"
         else -> link.urlPath
     }
 

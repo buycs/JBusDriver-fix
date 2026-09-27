@@ -54,8 +54,14 @@
                         android:layout_height="1dp"
                         android:background="@color/forum_divider" />
 
-                    <!-- 窗口高 = 单条 18dp x 5 = 90dp, 和 layout_forum_hot_item.xml 的高度对齐; 其余的上下滑动看 -->
-                    <ScrollView
+                    <!-- 窗口高 = 单条 18dp x 5 = 90dp, 和 layout_forum_hot_item.xml 的高度对齐; 其余的上下滑动看。
+                         必须是 BoardHotScrollView, 不能换成普通 ScrollView/NestedScrollView:
+                         这一栏挂在 AppBarLayout 里, 手指一动 AppBarLayout 的 Behavior 会在
+                         onInterceptTouchEvent(ACTION_MOVE) 阶段把整串手势从子 View 手里抢走去收顶栏,
+                         子 View 连一个 MOVE 都收不到, 于是「永远只看到 5 条」。
+                         BoardHotScrollView 在 ACTION_DOWN 时就先插旗禁止上层拦截, 手势才留在这栏里。
+                         换成 NestedScrollView 更糟: 它的 pre-scroll 会先把位移交给顶栏(收起来), 再轮到自己。 -->
+                    <me.jbusdriver.ui.widget.BoardHotScrollView
                         android:id="@+id/sv_board_list"
                         android:layout_width="match_parent"
                         android:layout_height="90dp"
@@ -66,7 +72,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical" />
-                    </ScrollView>
+                    </me.jbusdriver.ui.widget.BoardHotScrollView>
                 </LinearLayout>
 
                 <!-- 站点列表页上方的两行: 上排是主题分类(带帖子数, 一屏放不下要横滑), 下排是排序 -->

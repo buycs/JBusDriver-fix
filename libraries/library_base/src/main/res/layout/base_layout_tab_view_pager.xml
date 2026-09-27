@@ -6,22 +6,43 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
+    <!-- 标签页那一条: 左边是页签, 最右边是页面动作的三点菜单。
+         底色挪到这层, 否则三点按钮那块会露出页面底色。 -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="36dp"
-        android:background="@color/colorAccent"
-        app:tabBackground="@color/colorPrimary"
-        app:tabGravity="fill"
-        app:tabIndicatorColor="@color/colorAccent"
-        app:tabIndicatorHeight="@dimen/material_3dp"
-        app:tabMaxWidth="2000dp"
-        app:tabMode="fixed"
-        app:tabSelectedTextColor="@android:color/white"
-        app:tabTextColor="@color/tabTextIdle"
-        app:tabPaddingTop="6dp"
-        app:tabPaddingBottom="6dp"
-      />
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:orientation="horizontal">
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            app:tabBackground="@color/colorPrimary"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="@color/colorAccent"
+            app:tabIndicatorHeight="@dimen/material_3dp"
+            app:tabMaxWidth="2000dp"
+            app:tabMode="fixed"
+            app:tabSelectedTextColor="@android:color/white"
+            app:tabTextColor="@color/tabTextIdle"
+            app:tabPaddingTop="6dp"
+            app:tabPaddingBottom="6dp" />
+
+        <!-- 页面动作菜单的入口。默认不显示, 由 TabViewPagerFragment 按页面决定。 -->
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/ib_tab_overflow"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/tab_overflow_desc"
+            android:padding="@dimen/material_6dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_more_vert_white_24dp"
+            android:visibility="gone" />
+    </LinearLayout>
 
 
     <androidx.viewpager.widget.ViewPager

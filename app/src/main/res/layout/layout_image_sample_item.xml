@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- adjustViewBounds: 让 View 高度跟着图片比例走; 原来的 minHeight 88dp 比 3:2 缩略图高出 ~95px, 上下各留 ~48px 空白, 看着像行间距翻倍 -->
-<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/iv_movie_thumb"
-    style="@style/AppTheme.Click"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:adjustViewBounds="true"
-    android:minHeight="52dp"
-    android:scaleType="fitCenter" />
+<!-- 缩略图格子固定成 3:2, 高度不再跟着图片比例和加载状态走。
+     原来用 adjustViewBounds + wrap_content: 未加载完时是 placeholder(24dp 图标)撑出的
+     minHeight 52dp, 加载完才按真实比例变高 —— 同一屏里「已加载」和「未加载」的格子高度不同,
+     看起来就是有的间隔正常、有的间隔很大。固定比例后行高恒定, 间距也就均匀了。 -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/iv_movie_thumb"
+        style="@style/AppTheme.Click"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintDimensionRatio="3:2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

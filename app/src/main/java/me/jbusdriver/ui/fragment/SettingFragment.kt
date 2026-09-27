@@ -2,6 +2,7 @@ package me.jbusdriver.ui.fragment
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -28,6 +29,7 @@ import me.jbusdriver.db.service.LinkService
 import me.jbusdriver.http.GitHub
 import me.jbusdriver.mvp.bean.UpdateBean
 import me.jbusdriver.ui.activity.SplashActivity
+import me.jbusdriver.ui.activity.applyRecentsExclusion
 import me.jbusdriver.ui.data.AppConfiguration
 import me.jbusdriver.ui.data.BottomTab
 import me.jbusdriver.ui.data.BottomTabs
@@ -75,7 +77,8 @@ class SettingFragment : BaseFragment() {
         b.rowUiMode.root.setOnClickListener { pickUiMode() }
         b.rowListStyle.root.setOnClickListener { pickPageMode() }
         b.rowHomePage.root.setOnClickListener { pickHomePage() }
-        b.rowCollectBackup.root.setOnClickListener { pickBackupAction() }
+        b.rowExportCollect.root.setOnClickListener { exportLauncher.launch(BACKUP_FILE_NAME) }
+        b.rowImportCollect.root.setOnClickListener { importLauncher.launch(BACKUP_MIMES) }
         b.rowTheme.root.setOnClickListener { pickTheme() }
         b.rowGridColumn.root.setOnClickListener { pickGridColumn() }
         b.rowClearCache.root.setOnClickListener { clearCache() }
@@ -87,7 +90,9 @@ class SettingFragment : BaseFragment() {
             AppConfiguration.hideRecent
         ) {
             AppConfiguration.hideRecent = it
-            toast("重启应用后生效")
+            // 顺手落到当前 task 上: API 30+ 立刻生效, 更低版本只能等重启
+            activity?.applyRecentsExclusion(it)
+            toast(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) "设置已生效" else "重启应用后生效")
         }
     }
 
@@ -121,7 +126,8 @@ class SettingFragment : BaseFragment() {
             b.rowListStyle, "影片列表样式",
             "当前：${PAGE_MODE_LABELS[AppConfiguration.pageMode]}"
         )
-        title(b.rowCollectBackup, "导入/导出收藏", "导出为 JSON 文件, 或从文件恢复")
+        title(b.rowExportCollect, "导出收藏", EXPORT_SUMMARY)
+        title(b.rowImportCollect, "导入收藏", IMPORT_SUMMARY)
         title(b.rowTheme, "主题", "当前：${THEME_LABELS[AppConfiguration.themeMode]}")
         title(b.rowGridColumn, "网格列数", "当前：${AppConfiguration.gridColumn} 列")
         title(b.rowClearCache, "清理缓存", CLEAR_CACHE_SUMMARY)
@@ -220,20 +226,6 @@ class SettingFragment : BaseFragment() {
     //endregion
 
     //region 收藏导入导出
-    private fun pickBackupAction() {
-        MaterialDialog.Builder(viewContext)
-            .title("导入/导出收藏")
-            .items("导出收藏", "导入收藏")
-            .itemsCallback { _, _, which, _ ->
-                when (which) {
-                    0 -> exportLauncher.launch(BACKUP_FILE_NAME)
-                    else -> importLauncher.launch(BACKUP_MIMES)
-                }
-            }
-            .negativeText("取消")
-            .show()
-    }
-
     private fun writeBackupTo(uri: Uri) {
         val loading = MaterialDialog.Builder(viewContext).content("正在导出...").progress(true, 0).show()
         Flowable.fromCallable {
@@ -350,6 +342,8 @@ class SettingFragment : BaseFragment() {
             override fun updateDrawState(ds: TextPaint) {
                 ds.color = ContextCompat.getColor(viewContext, R.color.colorPrimary)
                 ds.isUnderlineText = false
+                // 这两行是「源码」入口, 比正文重要, 加粗让它在弹窗里先被看到
+                ds.isFakeBoldText = true
             }
         }, start, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         return this
@@ -377,7 +371,9 @@ class SettingFragment : BaseFragment() {
         private const val HOME_PAGE_DISABLED_SUMMARY = "需先切换到底部样式"
         private const val CLEAR_CACHE_SUMMARY = "清除图片与网络缓存, 释放本地空间"
         private const val CHECK_UPDATE_SUMMARY = "从服务器检查是否有新版本"
-        private const val HIDE_RECENT_SUMMARY = "最近任务列表不显示本应用（切换后重启应用生效）"
+        private const val HIDE_RECENT_SUMMARY = "最近任务列表不显示本应用（Android 11 及以上立即生效, 更低版本需重启）"
+        private const val EXPORT_SUMMARY = "把收藏导出为 JSON 文件"
+        private const val IMPORT_SUMMARY = "从 JSON 文件恢复收藏（有则更新、无则新增）"
 
         private const val MIME_JSON = "application/json"
         private const val BACKUP_FILE_NAME = "jbusdriver-collect-backup.json"
